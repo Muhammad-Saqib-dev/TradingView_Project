@@ -1,0 +1,11 @@
+{
+  "accountEmail": "email@gmail.com",
+  "accountPassword": "password1234",
+  "waitingTime": 3000,
+  "defaultList":"testing2",
+  "timeFrame1":"4h",
+  "timeFrame2":"1m",
+  "timeFrame3":"6m",
+  "outputFolder":"./ScreenshotsFolder"
+}
+  
