@@ -113,6 +113,11 @@ const timeFramesSelectors = {
   "12m":"#overlap-manager-root > div:nth-child(2) > span > div.menuWrap-Kq3ruQo8 > div > div > div > div:nth-child(39) > div > span.labelRow-jFqVJoPk"
 }
 
+function delay(time) {
+  return new Promise(resolve => setTimeout(resolve, time));
+}
+
+
 let browser
 let nextCompany = false
 let previousCompany = false
@@ -199,25 +204,55 @@ const runTest = async () => {
 
     //Login in the website
     // craeting variable of the inputs and button of the login page
+    const sidebarVisibleSelector =
+      `button[aria-label="Watchlist, details and news"]`;
+
+    //Login in the website
+    // craeting variable of the inputs and button of the login page
+    // const usernLoggedInSelector = '#tv-content > div > div > div > div > strong'
     const usernLoggedInSelector =
-      'div.text-yrIMi47q.text_large-yrIMi47q > div > p:nth-child(1) > button'
+      "div.text-yrIMi47q.text_large-yrIMi47q > div > p:nth-child(1) > button";
 
     const stockPriceSelector =
-      'body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-detail > div.widgetbar-widgetbody > div > div.wrapper-Tv7LSjUz > div.container-qWcO4bp9.widgetWrapper-BSF4XTsE.userSelectText-BSF4XTsE.offsetDisabled-BSF4XTsE > span.priceWrapper-qWcO4bp9 > span.highlight-maJ2WnzA.price-qWcO4bp9'
+      "body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-detail > div.widgetbar-widgetbody > div > div.wrapper-Tv7LSjUz > div.container-qWcO4bp9.widgetWrapper-BSF4XTsE.userSelectText-BSF4XTsE.offsetDisabled-BSF4XTsE > span.priceWrapper-qWcO4bp9 > span.highlight-maJ2WnzA.price-qWcO4bp9";
+
+ 
 
     const firstAvailableElement = await Promise.race([
       page
         .waitForSelector(usernLoggedInSelector, {
           visible: true,
-          timeout: 60000
+          timeout: 60000,
         })
-        .then(() => 'Not LoggedIn'),
+        .then(() => "Not LoggedIn"),
       page
-        .waitForSelector(stockPriceSelector, { visible: true, timeout: 60000 })
-        .then(() => 'stockPrice')
-    ])
+        .waitForSelector(sidebarVisibleSelector, {
+          visible: true,
+          timeout: 60000,
+        })
+        .then(() => "sidebar visible"),
+    ]);
 
-    console.log('First available element:', firstAvailableElement)
+    console.log("First available element:", firstAvailableElement);
+    if (firstAvailableElement == "sidebar visible") {
+      let stockPriceVisible = false;
+      
+      // While loop to check the visibility of the stock price and click sidebar if necessary
+      while (!stockPriceVisible) {
+        stockPriceVisible = await page.evaluate((selector) => {
+          const element = document.querySelector(selector);
+          return element !== null && element.offsetParent !== null; // Check if the stock price element is visible
+        }, stockPriceSelector);
+
+        if (!stockPriceVisible) {
+          // Click on the sidebar to refresh the content
+          await page.click(sidebarVisibleSelector);
+
+          // Wait for 3 seconds before checking again
+          await delay(4000);
+        }
+      }
+    }
 
     if (firstAvailableElement === 'Not LoggedIn') {
       const loginBtn = await page.waitForSelector(
@@ -626,6 +661,7 @@ const runTest = async () => {
       /// User already logged in
       ////////////////////////////////////////
       console.log('i am already logged in')
+      await delay(1000)
 
       const favListBtn = await page.$(
         'body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetHeader-X9EuSe_t > div > div > div.leftSlot-u7Ufi_N7.widgetbarWidgetHeaderLeftSlot-mQBvegEO > div > div > span.titleRow-mQBvegEO'
