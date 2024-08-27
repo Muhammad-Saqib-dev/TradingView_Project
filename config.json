@@ -3,9 +3,9 @@
   "accountPassword": "password1234",
   "waitingTime": 3000,
   "defaultList":"testing2",
-  "timeFrame1":"4h",
-  "timeFrame2":"1m",
-  "timeFrame3":"6m",
+  "timeFrame1":"3M",
+  "timeFrame2":"6M",
+  "timeFrame3":"12M",
   "outputFolder":"./ScreenshotsFolder"
 }
-  
+

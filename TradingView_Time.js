@@ -36,6 +36,10 @@ async function loadCookies(page, filePath) {
   await page.setCookie(...cookies);
 }
 
+function delay(time) {
+  return new Promise((resolve) => setTimeout(resolve, time));
+}
+
 const timeFramesSelectors = {
   "1s": "#overlap-manager-root > div:nth-child(2) > span > div.menuWrap-Kq3ruQo8 > div > div > div > div:nth-child(10) > div > span.labelRow-jFqVJoPk",
   "5s": "#overlap-manager-root > div:nth-child(2) > span > div.menuWrap-Kq3ruQo8 > div > div > div > div:nth-child(11) > div > span.labelRow-jFqVJoPk",
@@ -63,15 +67,14 @@ const timeFramesSelectors = {
   "2h": "#overlap-manager-root > div:nth-child(2) > span > div.menuWrap-Kq3ruQo8 > div > div > div > div:nth-child(29) > div > span.labelRow-jFqVJoPk",
   "3h": "#overlap-manager-root > div:nth-child(2) > span > div.menuWrap-Kq3ruQo8 > div > div > div > div:nth-child(30) > div > span.labelRow-jFqVJoPk",
   "4h": "#overlap-manager-root > div:nth-child(2) > span > div.menuWrap-Kq3ruQo8 > div > div > div > div:nth-child(31) > div > span.labelRow-jFqVJoPk",
-  "1d": "#overlap-manager-root > div:nth-child(2) > span > div.menuWrap-Kq3ruQo8 > div > div > div > div:nth-child(34) > div > span.labelRow-jFqVJoPk",
-  "1w": "#overlap-manager-root > div:nth-child(2) > span > div.menuWrap-Kq3ruQo8 > div > div > div > div:nth-child(35) > div > span.labelRow-jFqVJoPk",
-  "1m": "#overlap-manager-root > div:nth-child(2) > span > div.menuWrap-Kq3ruQo8 > div > div > div > div:nth-child(36) > div > span.labelRow-jFqVJoPk",
-  "3m": "#overlap-manager-root > div:nth-child(2) > span > div.menuWrap-Kq3ruQo8 > div > div > div > div:nth-child(37) > div > span.labelRow-jFqVJoPk",
-  "6m": "#overlap-manager-root > div:nth-child(2) > span > div.menuWrap-Kq3ruQo8 > div > div > div > div:nth-child(38) > div > span.labelRow-jFqVJoPk",
-  "12m":
+  "1D": "#overlap-manager-root > div:nth-child(2) > span > div.menuWrap-Kq3ruQo8 > div > div > div > div:nth-child(34) > div > span.labelRow-jFqVJoPk",
+  "1W": "#overlap-manager-root > div:nth-child(2) > span > div.menuWrap-Kq3ruQo8 > div > div > div > div:nth-child(35) > div > span.labelRow-jFqVJoPk",
+  "1M": "#overlap-manager-root > div:nth-child(2) > span > div.menuWrap-Kq3ruQo8 > div > div > div > div:nth-child(36) > div > span.labelRow-jFqVJoPk",
+  "3M": "#overlap-manager-root > div:nth-child(2) > span > div.menuWrap-Kq3ruQo8 > div > div > div > div:nth-child(37) > div > span.labelRow-jFqVJoPk",
+  "6M": "#overlap-manager-root > div:nth-child(2) > span > div.menuWrap-Kq3ruQo8 > div > div > div > div:nth-child(38) > div > span.labelRow-jFqVJoPk",
+  "12M":
     "#overlap-manager-root > div:nth-child(2) > span > div.menuWrap-Kq3ruQo8 > div > div > div > div:nth-child(39) > div > span.labelRow-jFqVJoPk",
 };
-
 
 let browser;
 let listNotFound = false;
@@ -114,8 +117,7 @@ const runTest = async () => {
     //  Log in to the website
     /////////////////////////////////
 
-    const sidebarVisibleSelector =
-      `button[aria-label="Watchlist, details and news"]`;
+    const sidebarVisibleSelector = `button[aria-label="Watchlist, details and news"]`;
 
     //Login in the website
     // craeting variable of the inputs and button of the login page
@@ -125,8 +127,6 @@ const runTest = async () => {
 
     const stockPriceSelector =
       "body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-detail > div.widgetbar-widgetbody > div > div.wrapper-Tv7LSjUz > div.container-qWcO4bp9.widgetWrapper-BSF4XTsE.userSelectText-BSF4XTsE.offsetDisabled-BSF4XTsE > span.priceWrapper-qWcO4bp9 > span.highlight-maJ2WnzA.price-qWcO4bp9";
-
- 
 
     const firstAvailableElement = await Promise.race([
       page
@@ -146,9 +146,6 @@ const runTest = async () => {
     console.log("First available element:", firstAvailableElement);
     if (firstAvailableElement == "sidebar visible") {
       let stockPriceVisible = false;
-      function delay(time) {
-        return new Promise(resolve => setTimeout(resolve, time));
-      }
 
       // While loop to check the visibility of the stock price and click sidebar if necessary
       while (!stockPriceVisible) {
@@ -495,97 +492,20 @@ const runTest = async () => {
       }
     } else {
       console.log("i am already logged in");
+      let result;
+      let timeFrameArray;
+      await delay(1000);
 
-      await delay(1000)
-
-      const favListBtn = await page.$(
+      const listNameSelector = await page.waitForSelector(
         "body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetHeader-X9EuSe_t > div > div > div.leftSlot-u7Ufi_N7.widgetbarWidgetHeaderLeftSlot-mQBvegEO > div > div > span.titleRow-mQBvegEO"
-      ); // Wait for the email input field to load
-
-      await page.evaluate((listBtn) => listBtn.click(), favListBtn);
-
-      // const favList = await page.$$('.listContainer-XuENC387 > div > div ')
-
-      await new Promise((resolve) => setTimeout(resolve, 7000));
-
-      const favList = await page.$$(
-        "#overlap-manager-root > div:nth-child(2) > div > div.dialog-qyCw0PaN.dialog-b8SxMnzX.dialog-XuENC387.dialog-aRAWUDhF.rounded-aRAWUDhF.shadowed-aRAWUDhF > div > div.wrapper-nGEmjtaX > div.dialogContent-XuENC387 > div > div > div > div > div"
       );
 
-      console.log("i am total list : ", favList.length);
+      const listName = await page.evaluate(
+        (listBtn) => listBtn.textContent,
+        listNameSelector
+      );
 
-      // Define the title you want to match
-      const targetTitle = process.argv[2];
-      const defaultList = jsonData.defaultList;
-      // Initialize a flag to check if the title was found
-      let titleFound = false;
-
-      for (const fav of favList) {
-        const title = await fav.evaluate((el) => {
-          // Find the child element with a class name that starts with "title"
-          const titleElement = el.querySelector('[class^="title"]');
-          return titleElement
-            ? titleElement.textContent.trim()
-            : "Title not found";
-        });
-
-        console.log("Title: ", title);
-
-        if (title === targetTitle) {
-          console.log(`Found matching title: ${title}, clicking it.`);
-          // Click on the title element
-          await fav.evaluate((el) => {
-            const titleElement = el.querySelector('[class^="title"]');
-            if (titleElement) {
-              titleElement.click();
-            }
-          });
-          titleFound = true; // Mark that the title was found
-          break; // Stop the loop once the title is found and clicked
-        }
-      }
-
-      // If `process.argv[2]` is not provided, handle that scenario
-      if (!process.argv[2]) {
-        console.log("No title provided, clicking default list item.");
-        for (const fav of favList) {
-          const title = await fav.evaluate((el) => {
-            // Find the child element with a class name that starts with "title"
-            const titleElement = el.querySelector('[class^="title"]');
-            return titleElement
-              ? titleElement.textContent.trim()
-              : "Title not found";
-          });
-
-          console.log("Title: ", title);
-
-          if (title === defaultList) {
-            console.log(`Found matching title: ${title}, clicking it.`);
-            // Click on the title element
-            await fav.evaluate((el) => {
-              const titleElement = el.querySelector('[class^="title"]');
-              if (titleElement) {
-                titleElement.click();
-              }
-            });
-            titleFound = true; // Mark that the title was found
-            break; // Stop the loop once the title is found and clicked
-          }
-        }
-        console.log("Clicked default list item.");
-      }
-
-      if (!titleFound) {
-        listNotFound = true;
-        // If no matching title was found after checking all items
-        await page.evaluate(
-          (title) => {
-            alert(`No list found with the given name "${title}"`);
-          },
-          targetTitle ? targetTitle : defaultList
-        );
-        console.log("No matching title found.");
-      }
+      console.log("i am list name", listName);
 
       function getSelectors(key1, key2, key3) {
         const result = [
@@ -596,12 +516,6 @@ const runTest = async () => {
 
         return result;
       }
-
-      const timeFrameArray = getSelectors(
-        jsonData.timeFrame1,
-        jsonData.timeFrame2,
-        jsonData.timeFrame3
-      );
 
       function checkKeysAvailability(...keys) {
         let missingKeys = [];
@@ -617,13 +531,115 @@ const runTest = async () => {
         return missingKeys.length > 0 ? missingKeys : [];
       }
 
+      if (listName == jsonData.defaultList && !process.argv[2]) {
+        console.log("deafult list is already selected");
+      } else {
+        const favListBtn = await page.$(
+          "body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetHeader-X9EuSe_t > div > div > div.leftSlot-u7Ufi_N7.widgetbarWidgetHeaderLeftSlot-mQBvegEO > div > div > span.titleRow-mQBvegEO"
+        ); // Wait for the email input field to load
+
+        await page.evaluate((listBtn) => listBtn.click(), favListBtn);
+
+        // const favList = await page.$$('.listContainer-XuENC387 > div > div ')
+
+        await new Promise((resolve) => setTimeout(resolve, 7000));
+
+        const favList = await page.$$(
+          "#overlap-manager-root > div:nth-child(2) > div > div.dialog-qyCw0PaN.dialog-b8SxMnzX.dialog-XuENC387.dialog-aRAWUDhF.rounded-aRAWUDhF.shadowed-aRAWUDhF > div > div.wrapper-nGEmjtaX > div.dialogContent-XuENC387 > div > div > div > div > div"
+        );
+
+        console.log("i am total list : ", favList.length);
+
+        // Define the title you want to match
+        const targetTitle = process.argv[2];
+        const defaultList = jsonData.defaultList;
+        // Initialize a flag to check if the title was found
+        let titleFound = false;
+
+        for (const fav of favList) {
+          const title = await fav.evaluate((el) => {
+            // Find the child element with a class name that starts with "title"
+            const titleElement = el.querySelector('[class^="title"]');
+            return titleElement
+              ? titleElement.textContent.trim()
+              : "Title not found";
+          });
+
+          console.log("Title: ", title);
+
+          if (title === targetTitle) {
+            console.log(`Found matching title: ${title}, clicking it.`);
+            // Click on the title element
+            await fav.evaluate((el) => {
+              const titleElement = el.querySelector('[class^="title"]');
+              if (titleElement) {
+                titleElement.click();
+              }
+            });
+            titleFound = true; // Mark that the title was found
+            break; // Stop the loop once the title is found and clicked
+          }
+        }
+
+        // If `process.argv[2]` is not provided, handle that scenario
+        if (!process.argv[2]) {
+          console.log("No title provided, clicking default list item.");
+          for (const fav of favList) {
+            const title = await fav.evaluate((el) => {
+              // Find the child element with a class name that starts with "title"
+              const titleElement = el.querySelector('[class^="title"]');
+              return titleElement
+                ? titleElement.textContent.trim()
+                : "Title not found";
+            });
+
+            console.log("Title: ", title);
+
+            if (title === defaultList) {
+              console.log(`Found matching title: ${title}, clicking it.`);
+              // Click on the title element
+              await fav.evaluate((el) => {
+                const titleElement = el.querySelector('[class^="title"]');
+                if (titleElement) {
+                  titleElement.click();
+                }
+              });
+              titleFound = true; // Mark that the title was found
+              break; // Stop the loop once the title is found and clicked
+            }
+          }
+          console.log("Clicked default list item.");
+        }
+
+        if (!titleFound) {
+          listNotFound = true;
+          // If no matching title was found after checking all items
+          await page.evaluate(
+            (title) => {
+              alert(`No list found with the given name "${title}"`);
+            },
+            targetTitle ? targetTitle : defaultList
+          );
+          console.log("No matching title found.");
+        }
+
+        
+      }
+      timeFrameArray = getSelectors(
+        jsonData.timeFrame1,
+        jsonData.timeFrame2,
+        jsonData.timeFrame3
+      );
       // Example usage:
-      const result = checkKeysAvailability(
+      result = checkKeysAvailability(
         jsonData.timeFrame1,
         jsonData.timeFrame2,
         jsonData.timeFrame3
       );
 
+      console.log("i am result outside", result);
+
+      await new Promise((resolve) => setTimeout(resolve, 3000));
       const totalCompanies = await page.$$(
         "body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas > div > div"
       ); // Wait for the email input field to load
