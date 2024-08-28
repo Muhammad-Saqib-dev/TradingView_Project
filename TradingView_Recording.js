@@ -1,10 +1,10 @@
 import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import fs from "fs";
-import { login, TimeFunction } from "./mainFunctions.js";
-import { loadCookies, readJSONFile } from "./functions.js";
-
-
+import { readJSONFile } from "./functions.js";
+import { loadCookies } from "./functions.js";
+import { delay } from "./functions.js";
+import { login, RecordingFunction } from "./mainFunctions.js";
 
 // Use the data in your script
 const jsonData = readJSONFile("./config.json");
@@ -17,15 +17,9 @@ const BROWSER_PATH =
   //   '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser'
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"; // Change this path to your desired browser's path
 
-
-
-
-
-
-
-
 let browser;
 let listNotFound = false;
+let recorder;
 const POLL_INTERVAL = 2000; // Interval in milliseconds between checks
 const TIMEOUT = 60000; // Total timeout duration in milliseconds
 const runTest = async () => {
@@ -92,6 +86,7 @@ const runTest = async () => {
     ]);
 
     console.log("First available element:", firstAvailableElement);
+
     if (firstAvailableElement == "sidebar visible") {
       let stockPriceVisible = false;
 
@@ -114,18 +109,12 @@ const runTest = async () => {
     if (firstAvailableElement == "Not LoggedIn") {
       await login(browser,page, cookieFilePath, firstAvailableElement,jsonData)
 
-      await TimeFunction(page,
-        jsonData,
-        listNotFound,
-        POLL_INTERVAL,
-        TIMEOUT)
+      await RecordingFunction(page,jsonData,recorder, listNotFound, POLL_INTERVAL,TIMEOUT)
     } else {
       console.log("i am already logged in");
-      await TimeFunction(page,
-        jsonData,
-        listNotFound,
-        POLL_INTERVAL,
-        TIMEOUT)
+
+      await RecordingFunction(page,jsonData,recorder, listNotFound, POLL_INTERVAL,TIMEOUT)
+
     }
 
     console.log("Script Finished");
@@ -133,10 +122,9 @@ const runTest = async () => {
   } catch (error) {
     console.log(error);
   } finally {
+    // Stop the recording
     // await browser.close()
   }
 };
 
 runTest();
-
-

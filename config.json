@@ -1,11 +1,15 @@
 {
   "accountEmail": "email@gmail.com",
-  "accountPassword": "password1234",
+  "accountPassword": "password786",
+  "loginWait":90000,
   "waitingTime": 3000,
-  "defaultList":"testing2",
+  "defaultList":"testing-3",
   "timeFrame1":"3M",
   "timeFrame2":"6M",
   "timeFrame3":"12M",
-  "outputFolder":"./ScreenshotsFolder"
+  "recordingTimeFrame":"12M",
+  "recordingIntervalDelay":1000,
+  "ScreenshotsOutputFolder":"./Screenshots",
+  "RecordingsOutputFolder":"./Recordings"
 }
 
