@@ -13,8 +13,6 @@ import { getNextFileNumber } from "./functions.js";
 import { getIndianDate } from "./functions.js";
 import { delay } from "./functions.js";
 
-
-
 //////////////////////////////////////////////
 //////////////////////////////////////////////
 /// Login Function
@@ -182,7 +180,7 @@ export async function RecordingFunction(
   await delay(1000);
 
   const listNameSelector = await page.waitForSelector(
-    "body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetHeader-X9EuSe_t > div > div > div.leftSlot-u7Ufi_N7.widgetbarWidgetHeaderLeftSlot-mQBvegEO > div > div > span.titleRow-mQBvegEO"
+    "span.titleRow-mQBvegEO"
   );
 
   const listName = await page.evaluate(
@@ -192,21 +190,48 @@ export async function RecordingFunction(
 
   // console.log("i am list name", listName);
 
-  if (
-    (listName == jsonData.defaultList && !process.argv[2]) ||
-    listName == process.argv[2]
-  ) {
+  if (listName == (process.argv[2] ? process.argv[2] : jsonData.defaultList)) {
     // console.log("deafult list is already selected");
   } else {
-    const favListBtn = await page.$(
-      "body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetHeader-X9EuSe_t > div > div > div.leftSlot-u7Ufi_N7.widgetbarWidgetHeaderLeftSlot-mQBvegEO > div > div > span.titleRow-mQBvegEO"
-    ); // Wait for the email input field to load
+    // console.log("i am else block")
+    const favListBtn = await page.$("span.titleRow-mQBvegEO"); // Wait for the email input field to load
 
     await page.evaluate((listBtn) => listBtn.click(), favListBtn);
 
-    // const favList = await page.$$('.listContainer-XuENC387 > div > div ')
+    const firstAvailableElement = await Promise.race([
+      page
+        .waitForSelector(
+          "#overlap-manager-root > div:nth-child(2) > div > div.dialog-qyCw0PaN.dialog-b8SxMnzX.dialog-XuENC387.dialog-aRAWUDhF.rounded-aRAWUDhF.shadowed-aRAWUDhF > div > div.wrapper-nGEmjtaX > div.dialogContent-XuENC387 > div > div > div > div > div",
+          {
+            visible: true,
+            timeout: 60000,
+          }
+        )
+        .then(() => "List is visible"),
+      page
+        .waitForSelector(
+          "#overlap-manager-root > div:nth-child(2) > span > div.watchlistMenu-mQBvegEO.menuWrap-Kq3ruQo8 > div > div > div:nth-child(11)",
+          {
+            visible: true,
+            timeout: 60000,
+          }
+        )
+        .then(() => "open list btn is visible"),
+    ]);
 
-    await delay(7000);
+    console.log("I am comment", firstAvailableElement);
+
+    if (firstAvailableElement == "open list btn is visible") {
+      
+      await delay(1000);
+      await page.click(
+        "#overlap-manager-root > div:nth-child(2) > span > div.watchlistMenu-mQBvegEO.menuWrap-Kq3ruQo8 > div > div > div:nth-child(11)"
+      );
+
+      await delay(6000);
+    } else {
+      await delay(6000);
+    }
 
     const favList = await page.$$(
       "#overlap-manager-root > div:nth-child(2) > div > div.dialog-qyCw0PaN.dialog-b8SxMnzX.dialog-XuENC387.dialog-aRAWUDhF.rounded-aRAWUDhF.shadowed-aRAWUDhF > div > div.wrapper-nGEmjtaX > div.dialogContent-XuENC387 > div > div > div > div > div"
@@ -304,7 +329,7 @@ export async function RecordingFunction(
     "body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas > div > div"
   ); // Wait for the email input field to load
 
-  // console.log("I am total companies stock", totalCompanies.length);
+  console.log("I am total companies stock", totalCompanies.length);
 
   for (let i = 1; i < totalCompanies.length; i++) {
     if (result?.length > 0) {
@@ -417,9 +442,6 @@ export async function RecordingFunction(
   await recorder.stop();
 }
 
-
-
-
 //////////////////////////////////////////////
 //////////////////////////////////////////////
 /// Time Function
@@ -435,16 +457,17 @@ export async function TimeFunction(
 ) {
   let result;
   let timeFrameArray;
-  await delay(1000);
+  await delay(4000);
 
-  const listNameSelector = await page.waitForSelector(
-    "body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetHeader-X9EuSe_t > div > div > div.leftSlot-u7Ufi_N7.widgetbarWidgetHeaderLeftSlot-mQBvegEO > div > div > span.titleRow-mQBvegEO"
-  );
+  const listNameSelector = await page.$("span.titleRow-mQBvegEO");
+
 
   const listName = await page.evaluate(
     (listBtn) => listBtn.textContent,
     listNameSelector
   );
+
+  console.log("i am cuurent list name", listName);
 
   // console.log("i am list name", listName);
 
@@ -472,18 +495,47 @@ export async function TimeFunction(
     return missingKeys.length > 0 ? missingKeys : [];
   }
 
-  if (listName == jsonData.defaultList && !process.argv[2]) {
+  if (listName == (process.argv[2] ? process.argv[2] : jsonData.defaultList)) {
     // console.log("deafult list is already selected");
   } else {
-    const favListBtn = await page.$(
-      "body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetHeader-X9EuSe_t > div > div > div.leftSlot-u7Ufi_N7.widgetbarWidgetHeaderLeftSlot-mQBvegEO > div > div > span.titleRow-mQBvegEO"
-    ); // Wait for the email input field to load
+    const favListBtn = await page.$("span.titleRow-mQBvegEO"); // Wait for the email input field to load
 
     await page.evaluate((listBtn) => listBtn.click(), favListBtn);
 
-    // const favList = await page.$$('.listContainer-XuENC387 > div > div ')
+    const firstAvailableElement = await Promise.race([
+      page
+        .waitForSelector(
+          "#overlap-manager-root > div:nth-child(2) > div > div.dialog-qyCw0PaN.dialog-b8SxMnzX.dialog-XuENC387.dialog-aRAWUDhF.rounded-aRAWUDhF.shadowed-aRAWUDhF > div > div.wrapper-nGEmjtaX > div.dialogContent-XuENC387 > div > div > div > div > div",
+          {
+            visible: true,
+            timeout: 60000,
+          }
+        )
+        .then(() => "List is visible"),
+      page
+        .waitForSelector(
+          "#overlap-manager-root > div:nth-child(2) > span > div.watchlistMenu-mQBvegEO.menuWrap-Kq3ruQo8 > div > div > div:nth-child(11)",
+          {
+            visible: true,
+            timeout: 60000,
+          }
+        )
+        .then(() => "open list btn is visible"),
+    ]);
 
-    await new Promise((resolve) => setTimeout(resolve, 7000));
+    console.log("I am comment", firstAvailableElement);
+
+    if (firstAvailableElement == "open list btn is visible") {
+      
+      await delay(1000);
+      await page.click(
+        "#overlap-manager-root > div:nth-child(2) > span > div.watchlistMenu-mQBvegEO.menuWrap-Kq3ruQo8 > div > div > div:nth-child(11)"
+      );
+
+      await delay(6000);
+    } else {
+      await delay(6000);
+    }
 
     const favList = await page.$$(
       "#overlap-manager-root > div:nth-child(2) > div > div.dialog-qyCw0PaN.dialog-b8SxMnzX.dialog-XuENC387.dialog-aRAWUDhF.rounded-aRAWUDhF.shadowed-aRAWUDhF > div > div.wrapper-nGEmjtaX > div.dialogContent-XuENC387 > div > div > div > div > div"
@@ -534,7 +586,7 @@ export async function TimeFunction(
             : "Title not found";
         });
 
-        // console.log("Title: ", title);
+        console.log("List Title: ", title);
 
         if (title === defaultList) {
           // console.log(`Found matching title: ${title}, clicking it.`);
@@ -693,348 +745,376 @@ export async function TimeFunction(
   }
 }
 
-
-
-
 //////////////////////////////////////////////
 //////////////////////////////////////////////
 /// Keyboard Function
 /////////////////////////////////////////////
 /////////////////////////////////////////////
 
-
-
-
-export async function KeyboardFunction( page,
+export async function KeyboardFunction(
+  page,
   jsonData,
   listNotFound,
   POLL_INTERVAL,
-  TIMEOUT, nextCompany, previousCompany, nextCompanyItteration, waitForSpaceBar){
+  TIMEOUT,
+  nextCompany,
+  previousCompany,
+  nextCompanyItteration,
+  waitForSpaceBar
+) {
   let result;
-      let timeFrameArray;
-      await delay(1000);
+  let timeFrameArray;
+  await delay(1000);
 
-      const listNameSelector = await page.waitForSelector(
-        "body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetHeader-X9EuSe_t > div > div > div.leftSlot-u7Ufi_N7.widgetbarWidgetHeaderLeftSlot-mQBvegEO > div > div > span.titleRow-mQBvegEO"
-      );
+  const listNameSelector = await page.waitForSelector(
+    "span.titleRow-mQBvegEO"
+  );
 
-      const listName = await page.evaluate(
-        (listBtn) => listBtn.textContent,
-        listNameSelector
-      );
+  const listName = await page.evaluate(
+    (listBtn) => listBtn.textContent,
+    listNameSelector
+  );
 
-      // console.log("i am list name", listName);
+  // console.log("i am list name", listName);
 
-      function getSelectors(key1, key2, key3) {
-        const result = [
-          timeFramesSelectors[key1],
-          timeFramesSelectors[key2],
-          timeFramesSelectors[key3],
-        ];
+  function getSelectors(key1, key2, key3) {
+    const result = [
+      timeFramesSelectors[key1],
+      timeFramesSelectors[key2],
+      timeFramesSelectors[key3],
+    ];
 
-        return result;
+    return result;
+  }
+
+  function checkKeysAvailability(...keys) {
+    let missingKeys = [];
+
+    // Iterate over each provided key
+    keys.forEach((key) => {
+      if (!(key in timeFramesSelectors)) {
+        missingKeys.push(key); // Add to missingKeys if the key is not found
       }
+    });
 
-      function checkKeysAvailability(...keys) {
-        let missingKeys = [];
+    // Return the missing keys or null if all keys are found
+    return missingKeys.length > 0 ? missingKeys : [];
+  }
 
-        // Iterate over each provided key
-        keys.forEach((key) => {
-          if (!(key in timeFramesSelectors)) {
-            missingKeys.push(key); // Add to missingKeys if the key is not found
+  if (listName == (process.argv[2] ? process.argv[2] : jsonData.defaultList)) {
+    // console.log("deafult list is already selected");
+  } else {
+    // console.log("i am else block")
+    const favListBtn = await page.$("span.titleRow-mQBvegEO"); // Wait for the email input field to load
+
+    await page.evaluate((listBtn) => listBtn.click(), favListBtn);
+
+    const firstAvailableElement = await Promise.race([
+      page
+        .waitForSelector(
+          "#overlap-manager-root > div:nth-child(2) > div > div.dialog-qyCw0PaN.dialog-b8SxMnzX.dialog-XuENC387.dialog-aRAWUDhF.rounded-aRAWUDhF.shadowed-aRAWUDhF > div > div.wrapper-nGEmjtaX > div.dialogContent-XuENC387 > div > div > div > div > div",
+          {
+            visible: true,
+            timeout: 60000,
+          }
+        )
+        .then(() => "List is visible"),
+      page
+        .waitForSelector(
+          "#overlap-manager-root > div:nth-child(2) > span > div.watchlistMenu-mQBvegEO.menuWrap-Kq3ruQo8 > div > div > div:nth-child(11)",
+          {
+            visible: true,
+            timeout: 60000,
+          }
+        )
+        .then(() => "open list btn is visible"),
+    ]);
+
+    console.log("I am comment", firstAvailableElement);
+
+    if (firstAvailableElement == "open list btn is visible") {
+      
+      await delay(1000);
+      await page.click(
+        "#overlap-manager-root > div:nth-child(2) > span > div.watchlistMenu-mQBvegEO.menuWrap-Kq3ruQo8 > div > div > div:nth-child(11)"
+      );
+
+      await delay(6000);
+    } else {
+      await delay(6000);
+    }
+
+    const favList = await page.$$(
+      "#overlap-manager-root > div:nth-child(2) > div > div.dialog-qyCw0PaN.dialog-b8SxMnzX.dialog-XuENC387.dialog-aRAWUDhF.rounded-aRAWUDhF.shadowed-aRAWUDhF > div > div.wrapper-nGEmjtaX > div.dialogContent-XuENC387 > div > div > div > div > div"
+    );
+
+    // console.log("i am total list : ", favList.length);
+
+    // Define the title you want to match
+    const targetTitle = process.argv[2];
+    const defaultList = jsonData.defaultList;
+    // Initialize a flag to check if the title was found
+    let titleFound = false;
+
+    for (const fav of favList) {
+      const title = await fav.evaluate((el) => {
+        // Find the child element with a class name that starts with "title"
+        const titleElement = el.querySelector('[class^="title"]');
+        return titleElement
+          ? titleElement.textContent.trim()
+          : "Title not found";
+      });
+
+      // console.log("Title: ", title);
+
+      if (title === targetTitle) {
+        // console.log(`Found matching title: ${title}, clicking it.`);
+        // Click on the title element
+        await fav.evaluate((el) => {
+          const titleElement = el.querySelector('[class^="title"]');
+          if (titleElement) {
+            titleElement.click();
           }
         });
-
-        // Return the missing keys or null if all keys are found
-        return missingKeys.length > 0 ? missingKeys : [];
+        titleFound = true; // Mark that the title was found
+        break; // Stop the loop once the title is found and clicked
       }
+    }
 
-      if (listName == jsonData.defaultList && !process.argv[2]) {
-        // console.log("deafult list is already selected");
-      } else {
-        const favListBtn = await page.$(
-          "body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetHeader-X9EuSe_t > div > div > div.leftSlot-u7Ufi_N7.widgetbarWidgetHeaderLeftSlot-mQBvegEO > div > div > span.titleRow-mQBvegEO"
-        ); // Wait for the email input field to load
+    // If `process.argv[2]` is not provided, handle that scenario
+    if (!process.argv[2]) {
+      // console.log("No title provided, clicking default list item.");
+      for (const fav of favList) {
+        const title = await fav.evaluate((el) => {
+          // Find the child element with a class name that starts with "title"
+          const titleElement = el.querySelector('[class^="title"]');
+          return titleElement
+            ? titleElement.textContent.trim()
+            : "Title not found";
+        });
 
-        await page.evaluate((listBtn) => listBtn.click(), favListBtn);
+        // console.log("Title: ", title);
 
-        // const favList = await page.$$('.listContainer-XuENC387 > div > div ')
-
-        await new Promise((resolve) => setTimeout(resolve, 7000));
-
-        const favList = await page.$$(
-          "#overlap-manager-root > div:nth-child(2) > div > div.dialog-qyCw0PaN.dialog-b8SxMnzX.dialog-XuENC387.dialog-aRAWUDhF.rounded-aRAWUDhF.shadowed-aRAWUDhF > div > div.wrapper-nGEmjtaX > div.dialogContent-XuENC387 > div > div > div > div > div"
-        );
-
-        // console.log("i am total list : ", favList.length);
-
-        // Define the title you want to match
-        const targetTitle = process.argv[2];
-        const defaultList = jsonData.defaultList;
-        // Initialize a flag to check if the title was found
-        let titleFound = false;
-
-        for (const fav of favList) {
-          const title = await fav.evaluate((el) => {
-            // Find the child element with a class name that starts with "title"
+        if (title === defaultList) {
+          // console.log(`Found matching title: ${title}, clicking it.`);
+          // Click on the title element
+          await fav.evaluate((el) => {
             const titleElement = el.querySelector('[class^="title"]');
-            return titleElement
-              ? titleElement.textContent.trim()
-              : "Title not found";
-          });
-
-          // console.log("Title: ", title);
-
-          if (title === targetTitle) {
-            // console.log(`Found matching title: ${title}, clicking it.`);
-            // Click on the title element
-            await fav.evaluate((el) => {
-              const titleElement = el.querySelector('[class^="title"]');
-              if (titleElement) {
-                titleElement.click();
-              }
-            });
-            titleFound = true; // Mark that the title was found
-            break; // Stop the loop once the title is found and clicked
-          }
-        }
-
-        // If `process.argv[2]` is not provided, handle that scenario
-        if (!process.argv[2]) {
-          // console.log("No title provided, clicking default list item.");
-          for (const fav of favList) {
-            const title = await fav.evaluate((el) => {
-              // Find the child element with a class name that starts with "title"
-              const titleElement = el.querySelector('[class^="title"]');
-              return titleElement
-                ? titleElement.textContent.trim()
-                : "Title not found";
-            });
-
-            // console.log("Title: ", title);
-
-            if (title === defaultList) {
-              // console.log(`Found matching title: ${title}, clicking it.`);
-              // Click on the title element
-              await fav.evaluate((el) => {
-                const titleElement = el.querySelector('[class^="title"]');
-                if (titleElement) {
-                  titleElement.click();
-                }
-              });
-              titleFound = true; // Mark that the title was found
-              break; // Stop the loop once the title is found and clicked
+            if (titleElement) {
+              titleElement.click();
             }
-          }
-          // console.log("Clicked default list item.");
+          });
+          titleFound = true; // Mark that the title was found
+          break; // Stop the loop once the title is found and clicked
         }
-
-        if (!titleFound) {
-          listNotFound = true;
-          // If no matching title was found after checking all items
-          await page.evaluate(
-            (title) => {
-              alert(`No list found with the given name "${title}"`);
-            },
-            targetTitle ? targetTitle : defaultList
-          );
-          // console.log("No matching title found.");
-        }
-
-        
       }
-      timeFrameArray = getSelectors(
-        jsonData.timeFrame1,
-        jsonData.timeFrame2,
-        jsonData.timeFrame3
+      // console.log("Clicked default list item.");
+    }
+
+    if (!titleFound) {
+      listNotFound = true;
+      // If no matching title was found after checking all items
+      await page.evaluate(
+        (title) => {
+          alert(`No list found with the given name "${title}"`);
+        },
+        targetTitle ? targetTitle : defaultList
       );
-      // Example usage:
-      result = checkKeysAvailability(
-        jsonData.timeFrame1,
-        jsonData.timeFrame2,
-        jsonData.timeFrame3
-      );
+      // console.log("No matching title found.");
+    }
+  }
+  timeFrameArray = getSelectors(
+    jsonData.timeFrame1,
+    jsonData.timeFrame2,
+    jsonData.timeFrame3
+  );
+  // Example usage:
+  result = checkKeysAvailability(
+    jsonData.timeFrame1,
+    jsonData.timeFrame2,
+    jsonData.timeFrame3
+  );
 
-      // console.log("i am result outside", result);
+  // console.log("i am result outside", result);
 
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      const totalCompanies = await page.$$(
-        "body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas > div > div"
-      ); // Wait for the email input field to load
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+  const totalCompanies = await page.$$(
+    "body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas > div > div"
+  ); // Wait for the email input field to load
 
-      // console.log("I am total companies stock", totalCompanies.length);
+  // console.log("I am total companies stock", totalCompanies.length);
 
-      for (let i = 1; i < totalCompanies.length; i++) {
-        if (result?.length > 0) {
-          // If no matching title was found after checking all items
-          await page.evaluate((timeFrame) => {
-            const formattedResult = timeFrame.join(", ");
-            alert(
-              `Wrong timefrmae is mentioned in the config file "${formattedResult}"`
-            );
-          }, result);
-          break;
-        }
-        if (listNotFound) {
-          // console.log("List not found");
-          break;
-        }
-        // console.log("I am always i: ", i);
-        if (
-          (previousCompany && i == 1) ||
-          (nextCompanyItteration && i == totalCompanies.length - 2)
-        ) {
+  for (let i = 1; i < totalCompanies.length; i++) {
+    if (result?.length > 0) {
+      // If no matching title was found after checking all items
+      await page.evaluate((timeFrame) => {
+        const formattedResult = timeFrame.join(", ");
+        alert(
+          `Wrong timefrmae is mentioned in the config file "${formattedResult}"`
+        );
+      }, result);
+      break;
+    }
+    if (listNotFound) {
+      // console.log("List not found");
+      break;
+    }
+    // console.log("I am always i: ", i);
+    if (
+      (previousCompany && i == 1) ||
+      (nextCompanyItteration && i == totalCompanies.length - 2)
+    ) {
+      previousCompany = false;
+      nextCompanyItteration = false;
+      // console.log("first company and cant go previous more");
+      i--;
+    } else {
+      // console.log("i am i ater the decrement ", i);
+      // Check if the Tab key was pressed
+
+      if (i == totalCompanies.length - 1) {
+        // console.log("i am last company");
+        continue;
+      }
+      // console.log("I am inside the companies loop");
+      if (i > 1) {
+        await page.evaluate(() => {
+          document.activeElement.blur();
+          document.body.focus();
+        });
+        // console.log("I am inside the companies loop if condition");
+
+        if (nextCompany) {
+          nextCompany = false;
           previousCompany = false;
           nextCompanyItteration = false;
-          // console.log("first company and cant go previous more");
-          i--;
         } else {
-          // console.log("i am i ater the decrement ", i);
-          // Check if the Tab key was pressed
-
-          if (i == totalCompanies.length - 1) {
-            // console.log("i am last company");
-            continue;
-          }
-          // console.log("I am inside the companies loop");
-          if (i > 1) {
-            await page.evaluate(() => {
-              document.activeElement.blur();
-              document.body.focus();
-            });
-            // console.log("I am inside the companies loop if condition");
-
-            if (nextCompany) {
-              nextCompany = false;
-              previousCompany = false;
-              nextCompanyItteration = false;
-            } else {
-              await waitForSpaceBar(page);
-            }
-
-            await page.evaluate(() => {
-              document.activeElement.blur();
-              document.body.focus();
-            });
-          }
-          const stockComany = await page.waitForSelector(
-            `body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas > div div:nth-child(${
-              i + 1 == totalCompanies.length ? i : i + 1
-            })  > div > div > span.cell-RsFlttSS.last-RsFlttSS`
-          );
-          // await page.evaluate(element => element.click(), stockComany)
-          await page.click(
-            `body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas > div div:nth-child(${
-              i + 1 == totalCompanies.length ? i : i + 1
-            })  > div > div > span.cell-RsFlttSS.last-RsFlttSS`,
-            { clickCount: 2 }
-          );
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-          const stockPriceSelector =
-            "body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-detail > div.widgetbar-widgetbody > div > div.wrapper-Tv7LSjUz > div.container-qWcO4bp9.widgetWrapper-BSF4XTsE.userSelectText-BSF4XTsE.offsetDisabled-BSF4XTsE > span.priceWrapper-qWcO4bp9 > span.highlight-maJ2WnzA.price-qWcO4bp9";
-          const startTime = Date.now();
-
-          while (Date.now() - startTime < TIMEOUT) {
-            const element = await page.$(stockPriceSelector);
-
-            if (element) {
-              const textContent = await page.evaluate(
-                (el) => el.textContent.trim(),
-                element
-              );
-
-              // Check if textContent is a number
-              if (!isNaN(parseFloat(textContent))) {
-                // console.log(`Number found: ${textContent}`);
-                break; // Exit loop if a number is found
-              } else {
-                // console.log(`Not a number: ${textContent}`);
-              }
-            } else {
-              // console.log("Element not found");
-            }
-
-            await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL)); // Wait before the next check
-          }
-          for (let time = 0; time < timeFrameArray.length; time++) {
-            // console.log("I am the timeFrame loop");
-            const timeSelector = await page.waitForSelector(
-              "div.titleWrapper-l31H9iuA.intervalTitle-l31H9iuA.apply-overflow-tooltip.withDot-l31H9iuA.apply-common-tooltip.withAction-l31H9iuA > button"
-            );
-
-            const currenTime = await page.evaluate(
-              (time) => time.textContent,
-              timeSelector
-            );
-
-            if (currenTime == jsonData.timeFrame1 && time == 0) {
-              // console.log("the time is same ");
-              continue;
-            }
-
-            if (time > 0) {
-              await page.evaluate(() => {
-                document.activeElement.blur();
-                document.body.focus();
-              });
-              const keyResult = await waitForSpaceBar(page);
-              // If Tab is pressed, break the loop
-              if (keyResult.key === "Tab") {
-                // console.log(`Tab key pressed. Moving to the next company...`);
-                if (i == totalCompanies.length - 2) {
-                  // console.log("i am the last stock");
-                  await page.evaluate(() => {
-                    alert(
-                      "We can't go on the next stock because we are on the last stock"
-                    );
-                  });
-                  nextCompanyItteration = true;
-                  i = i - 1;
-                  break;
-                } else {
-                  // console.log("I am the else block of tab button");
-
-                  nextCompany = true;
-                  break; // Skip to the next iteration of the parent loop
-                }
-              } else if (keyResult.key === "Control") {
-                // console.log(`key Control. Moving to the previous company...`);
-                if (i === 1) {
-                  // Check some condition after the action
-                  await page.evaluate(() => {
-                    alert(
-                      "We can't go on the previous stock because we are on the first stock"
-                    );
-                  });
-                  previousCompany = true;
-                  i = i - 1;
-                  break;
-                } else {
-                  // console.log("I am the else block of delete button");
-                  nextCompany = true;
-                  // console.log("i am i before the decrement ", i);
-                  i = i - 2;
-                  break; // Skip to the next iteration of the parent loop
-                }
-              }
-              await page.evaluate(() => {
-                document.activeElement.blur();
-                document.body.focus();
-              });
-            } else {
-              await new Promise((resolve) => setTimeout(resolve, 1000));
-            }
-            const timeFrameBtn = await page.waitForSelector(
-              "#header-toolbar-intervals > button > div > div"
-            ); // Wait for the email input field to load
-            await page.evaluate((element) => element.click(), timeFrameBtn);
-
-            const timeFrame = await page.waitForSelector(timeFrameArray[time]);
-            // const elementHTML = await page.evaluate(el => el.innerHTML, timeFrame)
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-
-            await page.evaluate((element) => element.click(), timeFrame);
-          }
+          await waitForSpaceBar(page);
         }
+
+        await page.evaluate(() => {
+          document.activeElement.blur();
+          document.body.focus();
+        });
       }
+      const stockComany = await page.waitForSelector(
+        `body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas > div div:nth-child(${
+          i + 1 == totalCompanies.length ? i : i + 1
+        })  > div > div > span.cell-RsFlttSS.last-RsFlttSS`
+      );
+      // await page.evaluate(element => element.click(), stockComany)
+      await page.click(
+        `body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas > div div:nth-child(${
+          i + 1 == totalCompanies.length ? i : i + 1
+        })  > div > div > span.cell-RsFlttSS.last-RsFlttSS`,
+        { clickCount: 2 }
+      );
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const stockPriceSelector =
+        "body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-detail > div.widgetbar-widgetbody > div > div.wrapper-Tv7LSjUz > div.container-qWcO4bp9.widgetWrapper-BSF4XTsE.userSelectText-BSF4XTsE.offsetDisabled-BSF4XTsE > span.priceWrapper-qWcO4bp9 > span.highlight-maJ2WnzA.price-qWcO4bp9";
+      const startTime = Date.now();
+
+      while (Date.now() - startTime < TIMEOUT) {
+        const element = await page.$(stockPriceSelector);
+
+        if (element) {
+          const textContent = await page.evaluate(
+            (el) => el.textContent.trim(),
+            element
+          );
+
+          // Check if textContent is a number
+          if (!isNaN(parseFloat(textContent))) {
+            // console.log(`Number found: ${textContent}`);
+            break; // Exit loop if a number is found
+          } else {
+            // console.log(`Not a number: ${textContent}`);
+          }
+        } else {
+          // console.log("Element not found");
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL)); // Wait before the next check
+      }
+      for (let time = 0; time < timeFrameArray.length; time++) {
+        // console.log("I am the timeFrame loop");
+        const timeSelector = await page.waitForSelector(
+          "div.titleWrapper-l31H9iuA.intervalTitle-l31H9iuA.apply-overflow-tooltip.withDot-l31H9iuA.apply-common-tooltip.withAction-l31H9iuA > button"
+        );
+
+        const currenTime = await page.evaluate(
+          (time) => time.textContent,
+          timeSelector
+        );
+
+        if (currenTime == jsonData.timeFrame1 && time == 0) {
+          // console.log("the time is same ");
+          continue;
+        }
+
+        if (time > 0) {
+          await page.evaluate(() => {
+            document.activeElement.blur();
+            document.body.focus();
+          });
+          const keyResult = await waitForSpaceBar(page);
+          // If Tab is pressed, break the loop
+          if (keyResult.key === "Tab") {
+            // console.log(`Tab key pressed. Moving to the next company...`);
+            if (i == totalCompanies.length - 2) {
+              // console.log("i am the last stock");
+              await page.evaluate(() => {
+                alert(
+                  "We can't go on the next stock because we are on the last stock"
+                );
+              });
+              nextCompanyItteration = true;
+              i = i - 1;
+              break;
+            } else {
+              // console.log("I am the else block of tab button");
+
+              nextCompany = true;
+              break; // Skip to the next iteration of the parent loop
+            }
+          } else if (keyResult.key === "Control") {
+            // console.log(`key Control. Moving to the previous company...`);
+            if (i === 1) {
+              // Check some condition after the action
+              await page.evaluate(() => {
+                alert(
+                  "We can't go on the previous stock because we are on the first stock"
+                );
+              });
+              previousCompany = true;
+              i = i - 1;
+              break;
+            } else {
+              // console.log("I am the else block of delete button");
+              nextCompany = true;
+              // console.log("i am i before the decrement ", i);
+              i = i - 2;
+              break; // Skip to the next iteration of the parent loop
+            }
+          }
+          await page.evaluate(() => {
+            document.activeElement.blur();
+            document.body.focus();
+          });
+        } else {
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
+        const timeFrameBtn = await page.waitForSelector(
+          "#header-toolbar-intervals > button > div > div"
+        ); // Wait for the email input field to load
+        await page.evaluate((element) => element.click(), timeFrameBtn);
+
+        const timeFrame = await page.waitForSelector(timeFrameArray[time]);
+        // const elementHTML = await page.evaluate(el => el.innerHTML, timeFrame)
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        await page.evaluate((element) => element.click(), timeFrame);
+      }
+    }
+  }
 }

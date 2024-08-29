@@ -11,7 +11,7 @@ const jsonData = readJSONFile("./config.json");
 
 puppeteer.use(StealthPlugin());
 
-const URL = "https://www.tradingview.com/chart/k4N4Qr4X/?symbol=NSE%3ARELIANCE";
+const URL = jsonData.URL
 
 const BROWSER_PATH =
   //   '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser'

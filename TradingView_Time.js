@@ -2,7 +2,7 @@ import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import fs from "fs";
 import { login, TimeFunction } from "./mainFunctions.js";
-import { loadCookies, readJSONFile } from "./functions.js";
+import { delay, loadCookies, readJSONFile } from "./functions.js";
 
 
 
@@ -11,17 +11,12 @@ const jsonData = readJSONFile("./config.json");
 
 puppeteer.use(StealthPlugin());
 
-const URL = "https://www.tradingview.com/chart/k4N4Qr4X/?symbol=NSE%3ARELIANCE";
+// const URL = "https://www.tradingview.com/chart/k4N4Qr4X/?symbol=NSE%3ARELIANCE";
+const URL = jsonData.URL
 
 const BROWSER_PATH =
   //   '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser'
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"; // Change this path to your desired browser's path
-
-
-
-
-
-
 
 
 let browser;
