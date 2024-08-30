@@ -194,8 +194,6 @@ export function playVideo(filePath) {
     // Convert relative path to absolute path
     const absoluteFilePath = join(__dirname, filePath);
 
-    console.log("Full path: ", absoluteFilePath);
-
     // Command to open Media Player with the specified video file
     const command = `"${mediaPlayerPath}" "${absoluteFilePath}"`;
 
@@ -214,3 +212,50 @@ export function playVideo(filePath) {
       resolve();
     });
   })}
+
+
+
+
+
+
+// Function to get the log directory path
+const getLogDirectoryPath = () => {
+  // Define main log directory
+  const mainLogDirectory = path.join(__dirname, 'logs');
+
+  // Create main log directory if it doesn't exist
+  if (!fs.existsSync(mainLogDirectory)) {
+    fs.mkdirSync(mainLogDirectory);
+  }
+
+  // Format the current date as YYYY-MM-DD
+  const currentDate = getIndianDate()
+  const dateSpecificLogDirectory = path.join(mainLogDirectory, currentDate);
+
+  // Create date-specific log directory if it doesn't exist
+  if (!fs.existsSync(dateSpecificLogDirectory)) {
+    fs.mkdirSync(dateSpecificLogDirectory);
+  }
+
+  return dateSpecificLogDirectory;
+};
+
+// Function to initialize logging
+export const initializeLogging = () => {
+  const logDirectory = getLogDirectoryPath();
+  const logFilePath = path.join(logDirectory, 'application.log');
+  const logStream = fs.createWriteStream(logFilePath, { flags: 'a' });
+
+  // Redirect console methods to write to the log file
+  console.log = (...args) => {
+    const message = args.join(' ');
+    logStream.write(`${new Date().toISOString()} LOG: ${message}\n`);
+  };
+
+  console.error = (...args) => {
+    const message = args.join(' ');
+    logStream.write(`${new Date().toISOString()} ERROR: ${message}\n`);
+  };
+
+  return logStream;
+};

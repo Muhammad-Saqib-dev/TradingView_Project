@@ -7,6 +7,7 @@ import {
   ensureDirSync,
   getIndianDate,
   getUniqueFileName,
+  initializeLogging,
   loadCookies,
   readJSONFile,
 } from "./functions.js";
@@ -14,6 +15,8 @@ import { KeyboardFunction, login } from "./mainFunctions.js";
 
 // Use the data in your script
 const jsonData = readJSONFile("./config.json");
+
+initializeLogging();
 
 async function waitForSpaceBar(page) {
   return await page.evaluate(() => {
@@ -56,6 +59,7 @@ const runTest = async () => {
   const cookieFilePath = "./cookies.json";
 
   try {
+    console.log("TradingView Keyboard Script is running...")
     // Launch a headful Chrome browser
     // ignoreing checking http errors(like authenticating(SSL))
     // want our page should take full width of browser
@@ -231,6 +235,7 @@ const runTest = async () => {
     console.log(error);
   } finally {
     await browser.close()
+    
   }
 };
 

@@ -2,10 +2,7 @@ import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import fs from "fs";
 import {
-
-  ensureDirectoryExists,
-  getIndianDate,
-  getNextFileNumber,
+  initializeLogging,
   playVideo,
   readJSONFile,
 } from "./functions.js";
@@ -13,6 +10,8 @@ import { loadCookies } from "./functions.js";
 import { delay } from "./functions.js";
 import { login, RecordingFunction } from "./mainFunctions.js";
 
+
+initializeLogging();
 
 // Use the data in your script
 const jsonData = readJSONFile("./config.json");
@@ -37,6 +36,7 @@ const runTest = async () => {
 
 
   try {
+    console.log("TradingView Recording Script is running...")
     // Launch a headful Chrome browser
     // ignoreing checking http errors(like authenticating(SSL))
     // want our page should take full width of browser
@@ -152,6 +152,8 @@ const runTest = async () => {
     // // Stop the recording
     await browser.close();
     await playVideo(recorder[1]);
+
+    console.log("Recording Script is closed")
     process.exit();
   }
 };

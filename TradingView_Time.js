@@ -2,7 +2,7 @@ import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import fs from "fs";
 import { login, TimeFunction } from "./mainFunctions.js";
-import { delay, loadCookies, readJSONFile } from "./functions.js";
+import { delay, initializeLogging, loadCookies, readJSONFile } from "./functions.js";
 
 
 
@@ -19,11 +19,13 @@ const BROWSER_PATH =
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"; // Change this path to your desired browser's path
 
 
+  initializeLogging();
 let browser;
 let listNotFound = false;
 const POLL_INTERVAL = 2000; // Interval in milliseconds between checks
 const TIMEOUT = 60000; // Total timeout duration in milliseconds
 const runTest = async () => {
+  console.log("TradingView Time Script is running...")
   const cookieFilePath = "./cookies.json";
   try {
     // Launch a headful Chrome browser
