@@ -1,6 +1,13 @@
 import fs from "fs";
 import path from "path";
+import { exec } from 'child_process';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 
+
+
+// Use the data in your script
+const jsonData = readJSONFile("./config.json");
 
 export const timeFramesSelectors = {
     "1s": "#overlap-manager-root > div:nth-child(2) > span > div.menuWrap-Kq3ruQo8 > div > div > div > div:nth-child(10) > div > span.labelRow-jFqVJoPk",
@@ -173,3 +180,37 @@ export function getSelectors(key1) {
   
     return fileName;
   }
+
+
+//  // Convert `import.meta.url` to a file path and get the directory name
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Replace with the actual path to the Media Player application
+const mediaPlayerPath = jsonData.mediaPlayerPath;
+
+export function playVideo(filePath) {
+  return new Promise((resolve, reject) => {
+    // Convert relative path to absolute path
+    const absoluteFilePath = join(__dirname, filePath);
+
+    console.log("Full path: ", absoluteFilePath);
+
+    // Command to open Media Player with the specified video file
+    const command = `"${mediaPlayerPath}" "${absoluteFilePath}"`;
+
+    exec(command, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Error playing video: ${error.message}`);
+        reject(error);
+        return;
+      }
+      if (stderr) {
+        console.error(`Error: ${stderr}`);
+        reject(new Error(stderr));
+        return;
+      }
+      console.log('Playing video with Media Player...');
+      resolve();
+    });
+  })}

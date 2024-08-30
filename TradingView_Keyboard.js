@@ -230,7 +230,7 @@ const runTest = async () => {
   } catch (error) {
     console.log(error);
   } finally {
-    // await browser.close()
+    await browser.close()
   }
 };
 

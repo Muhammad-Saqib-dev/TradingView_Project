@@ -1,29 +1,41 @@
 import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import fs from "fs";
-import { readJSONFile } from "./functions.js";
+import {
+
+  ensureDirectoryExists,
+  getIndianDate,
+  getNextFileNumber,
+  playVideo,
+  readJSONFile,
+} from "./functions.js";
 import { loadCookies } from "./functions.js";
 import { delay } from "./functions.js";
 import { login, RecordingFunction } from "./mainFunctions.js";
+
 
 // Use the data in your script
 const jsonData = readJSONFile("./config.json");
 
 puppeteer.use(StealthPlugin());
 
-const URL = jsonData.URL
+const URL = jsonData.URL;
 
 const BROWSER_PATH =
   //   '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser'
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"; // Change this path to your desired browser's path
 
+ 
 let browser;
-let listNotFound = false;
 let recorder;
+let listNotFound = false;
 const POLL_INTERVAL = 2000; // Interval in milliseconds between checks
 const TIMEOUT = 60000; // Total timeout duration in milliseconds
 const runTest = async () => {
   const cookieFilePath = "./cookies.json";
+  // Cleanup function for SIGINT and SIGTERM
+
+
   try {
     // Launch a headful Chrome browser
     // ignoreing checking http errors(like authenticating(SSL))
@@ -107,14 +119,28 @@ const runTest = async () => {
       }
     }
     if (firstAvailableElement == "Not LoggedIn") {
-      await login(browser,page, cookieFilePath, firstAvailableElement,jsonData)
+      await login(
+        browser,
+        page,
+        cookieFilePath,
+        firstAvailableElement,
+        jsonData
+      );
 
-      await RecordingFunction(page,jsonData,recorder, listNotFound, POLL_INTERVAL,TIMEOUT)
+      recorder = await RecordingFunction(
+        page,
+        jsonData,
+        recorder,
+        listNotFound,
+        POLL_INTERVAL,
+        TIMEOUT,
+        browser
+      )[0];
     } else {
       console.log("i am already logged in");
+      recorder = await RecordingFunction(page, jsonData, recorder,listNotFound, POLL_INTERVAL, TIMEOUT, browser);
 
-      await RecordingFunction(page,jsonData,recorder, listNotFound, POLL_INTERVAL,TIMEOUT)
-
+      
     }
 
     console.log("Script Finished");
@@ -122,8 +148,11 @@ const runTest = async () => {
   } catch (error) {
     console.log(error);
   } finally {
-    // Stop the recording
-    // await browser.close()
+    await recorder[0].stop();
+    // // Stop the recording
+    await browser.close();
+    await playVideo(recorder[1]);
+    process.exit();
   }
 };
 

@@ -11,6 +11,7 @@
   "recordingTimeFrame":"12M",
   "recordingIntervalDelay":1000,
   "ScreenshotsOutputFolder":"./Screenshots",
-  "RecordingsOutputFolder":"./Recordings"
+  "RecordingsOutputFolder":"./Recordings",
+  "mediaPlayerPath":"C:/Program Files (x86)/Windows Media Player/wmplayer.exe"
 }
 
