@@ -259,3 +259,35 @@ export const initializeLogging = () => {
 
   return logStream;
 };
+
+
+export async function clickAdjBtn (page){
+ await delay(1000)
+ try {
+  
+   const adjBtn = await page.$("body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--center > div.chart-toolbar.chart-controls-bar > div > div.seriesControlWrapper-BXXUwft2 > div:nth-child(3) > button")
+ 
+   if(adjBtn){
+     // Get the value of the 'aria-pressed' attribute
+   const ariaPressedValue = await page.evaluate(() => {
+   const button = document.querySelector('button[data-name="adj"]');
+   return button.getAttribute('aria-pressed');
+   });
+   
+   
+   
+   if (ariaPressedValue == "false"){
+   await page.click("body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--center > div.chart-toolbar.chart-controls-bar > div > div.seriesControlWrapper-BXXUwft2 > div:nth-child(3) > button")
+   console.log("i click adj once")
+   }else if(ariaPressedValue == "true"){
+   await page.click("body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--center > div.chart-toolbar.chart-controls-bar > div > div.seriesControlWrapper-BXXUwft2 > div:nth-child(3) > button")
+   await  delay(1000)
+   await page.click("body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--center > div.chart-toolbar.chart-controls-bar > div > div.seriesControlWrapper-BXXUwft2 > div:nth-child(3) > button")
+       console.log("i click adj twice")
+   }
+
+   }
+ } catch (error) {
+  console.log("adj btn", error)
+ }
+}

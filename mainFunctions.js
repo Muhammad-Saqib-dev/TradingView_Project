@@ -3,6 +3,7 @@ import readline from "readline";
 import { PuppeteerScreenRecorder } from "puppeteer-screen-recorder";
 import {
   checkKeysAvailability,
+  clickAdjBtn,
   convertTimeFrame,
   getSelectors,
   playVideo,
@@ -500,6 +501,7 @@ rl.on("SIGINT", async () => {
   
         await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL)); // Wait before the next check
       }
+      await clickAdjBtn(page)
       for (let time = 0; time < timeFrameArray.length; time++) {
         const timeSelector = await page.waitForSelector(
           "#header-toolbar-intervals > button > div > div"
@@ -539,6 +541,7 @@ rl.on("SIGINT", async () => {
         await delay(1000);
   
         await page.evaluate((element) => element.click(), timeFrame);
+        await clickAdjBtn(page)
       }
     }
 
@@ -849,6 +852,7 @@ export async function TimeFunction(
   
         await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL)); // Wait before the next check
       }
+      await clickAdjBtn(page)
     for (let time = 0; time < timeFrameArray.length; time++) {
       if(invalidSymbol){
         console.log("break, invalid symbol")
@@ -893,6 +897,7 @@ export async function TimeFunction(
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       await page.evaluate((element) => element.click(), timeFrame);
+      await clickAdjBtn(page)
       if(time == timeFrameArray.length - 1){
         await delay(3000)
       }
@@ -919,7 +924,6 @@ export async function KeyboardFunction(
 ) {
   let result;
   let timeFrameArray;
-  let invalidSymbol = false
   await delay(1000);
 
   const listNameSelector = await page.waitForSelector(
@@ -960,7 +964,7 @@ export async function KeyboardFunction(
   if (listName == (process.argv[2] ? process.argv[2] : jsonData.defaultList)) {
     console.log("deafult list is already selected");
   } else {
-    console.log("selecting the new list")
+    console.log("i am else block")
     const favListBtn = await page.$("span.titleRow-mQBvegEO"); // Wait for the email input field to load
 
     await page.evaluate((listBtn) => listBtn.click(), favListBtn);
@@ -986,7 +990,7 @@ export async function KeyboardFunction(
         .then(() => "open list btn is visible"),
     ]);
 
-   
+    console.log("I am comment", firstAvailableElement);
 
     if (firstAvailableElement == "open list btn is visible") {
       
@@ -1021,7 +1025,7 @@ export async function KeyboardFunction(
           : "Title not found";
       });
 
-      console.log("list name: ", title);
+      console.log("Title: ", title);
 
       if (title === targetTitle) {
         console.log(`Found matching title: ${title}, clicking it.`);
@@ -1115,7 +1119,7 @@ export async function KeyboardFunction(
       console.log("List not found");
       break;
     }
-    
+    console.log("I am always i: ", i);
     if (
       (previousCompany && i == 1) ||
       (nextCompanyItteration && i == totalCompanies.length - 2)
@@ -1125,20 +1129,20 @@ export async function KeyboardFunction(
       console.log("first company and cant go previous more");
       i--;
     } else {
-    
+      console.log("i am i ater the decrement ", i);
       // Check if the Tab key was pressed
 
       if (i == totalCompanies.length - 1) {
         console.log("i am last company");
         continue;
       }
-    
+      console.log("I am inside the companies loop");
       if (i > 1) {
         await page.evaluate(() => {
           document.activeElement.blur();
           document.body.focus();
         });
-       
+        console.log("I am inside the companies loop if condition");
 
         if (nextCompany) {
           nextCompany = false;
@@ -1165,76 +1169,37 @@ export async function KeyboardFunction(
         })  > div > div > span.cell-RsFlttSS.last-RsFlttSS`,
         { clickCount: 2 }
       );
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-    const stockPriceSelector =
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const stockPriceSelector =
         "body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-detail > div.widgetbar-widgetbody > div > div.wrapper-Tv7LSjUz > div.container-qWcO4bp9.widgetWrapper-BSF4XTsE.userSelectText-BSF4XTsE.offsetDisabled-BSF4XTsE > span.priceWrapper-qWcO4bp9 > span.highlight-maJ2WnzA.price-qWcO4bp9";
-      const notAvailableSelector ="span.invalid-lu2ARROZ";
-       
       const startTime = Date.now();
-  
+
       while (Date.now() - startTime < TIMEOUT) {
-        try {
-          
-          const firstAvailableElement = await Promise.race([
-            page
-              .waitForSelector(stockPriceSelector, {
-                visible: true,
-                timeout: 60000,
-              })
-              .then(() => "Stock Price Available"),
-            page
-              .waitForSelector(notAvailableSelector, {
-                visible: true,
-                timeout: 60000,
-              })
-              .then(() => "invalid symbol"),
-          ]);
-          
-          
-    
-          if (firstAvailableElement) {
-            let textContent
-            if(firstAvailableElement == "Stock Price Available"){
-              const element = await page.$(stockPriceSelector);
-               textContent = await page.evaluate(
-                (el) => el.textContent.trim(),
-                element
-              );
-            }else if (firstAvailableElement == "invalid symbol"){
-              const notAvailable = await page.$(notAvailableSelector)
-              textContent = await page.evaluate(
-                (el) => el.textContent.trim(),
-                notAvailable
-              );
-            }
-    
-            // Check if textContent is a number
-            if (!isNaN(parseFloat(textContent)) || textContent == "Invalid symbol") {
-              if(textContent == "Invalid symbol"){
-                 invalidSymbol = true
-              }
-              console.log(`Number found: ${textContent}`);
-              break; // Exit loop if a number is found
-            } else {
-              console.log(`Not a number: ${textContent}`);
-            }
+        const element = await page.$(stockPriceSelector);
+
+        if (element) {
+          const textContent = await page.evaluate(
+            (el) => el.textContent.trim(),
+            element
+          );
+
+          // Check if textContent is a number
+          if (!isNaN(parseFloat(textContent))) {
+            console.log(`Number found: ${textContent}`);
+            break; // Exit loop if a number is found
           } else {
-            console.log("Element not found");
+            console.log(`Not a number: ${textContent}`);
           }
-        } catch (error) {
-          console.log("i am not available, stock price")
-          
+        } else {
+          console.log("Element not found");
         }
-  
+
         await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL)); // Wait before the next check
       }
+      await clickAdjBtn(page)
+  
       for (let time = 0; time < timeFrameArray.length; time++) {
-        if(invalidSymbol){
-          console.log("break, invalid symbol")
-          invalidSymbol = false
-          break
-        }
-        
+        console.log("I am the timeFrame loop");
         const timeSelector = await page.waitForSelector(
           "div.titleWrapper-l31H9iuA.intervalTitle-l31H9iuA.apply-overflow-tooltip.withDot-l31H9iuA.apply-common-tooltip.withAction-l31H9iuA > button"
         );
@@ -1245,7 +1210,7 @@ export async function KeyboardFunction(
         );
 
         if (currenTime == jsonData.timeFrame1 && time == 0) {
-          console.log("the time is same ", currenTime);
+          console.log("the time is same ");
           continue;
         }
 
@@ -1289,7 +1254,7 @@ export async function KeyboardFunction(
             } else {
               console.log("I am the else block of delete button");
               nextCompany = true;
-              
+              console.log("i am i before the decrement ", i);
               i = i - 2;
               break; // Skip to the next iteration of the parent loop
             }
@@ -1309,12 +1274,9 @@ export async function KeyboardFunction(
         const timeFrame = await page.waitForSelector(timeFrameArray[time]);
         // const elementHTML = await page.evaluate(el => el.innerHTML, timeFrame)
         await new Promise((resolve) => setTimeout(resolve, 1000));
-
+        
         await page.evaluate((element) => element.click(), timeFrame);
-
-        if (time = timeFrameArray.length - 1){
-          await delay(5000)
-        }
+        await clickAdjBtn(page)
       }
     }
   }
