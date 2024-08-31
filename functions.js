@@ -208,7 +208,6 @@ export function playVideo(filePath) {
         reject(new Error(stderr));
         return;
       }
-      console.log('Playing video with Media Player...');
       resolve();
     });
   })}
@@ -249,15 +248,32 @@ export const initializeLogging = () => {
   // Redirect console methods to write to the log file
   console.log = (...args) => {
     const message = args.join(' ');
-    logStream.write(`${new Date().toISOString()} LOG: ${message}\n`);
+    logStream.write(`${getIndianDateTimeString()} LOG: ${message}\n`);
   };
 
   console.error = (...args) => {
     const message = args.join(' ');
-    logStream.write(`${new Date().toISOString()} ERROR: ${message}\n`);
+    logStream.write(`${getIndianDateTimeString()} ERROR: ${message}\n`);
   };
 
   return logStream;
+};
+
+
+
+// Function to get the current date and time in IST format
+const getIndianDateTimeString = () => {
+  const indianTimeZone = 'Asia/Kolkata';
+  const options = {
+    timeZone: indianTimeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  };
+  return new Intl.DateTimeFormat('en-GB', options).format(new Date());
 };
 
 
@@ -278,12 +294,11 @@ export async function clickAdjBtn (page){
    
    if (ariaPressedValue == "false"){
    await page.click("body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--center > div.chart-toolbar.chart-controls-bar > div > div.seriesControlWrapper-BXXUwft2 > div:nth-child(3) > button")
-   console.log("i click adj once")
    }else if(ariaPressedValue == "true"){
    await page.click("body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--center > div.chart-toolbar.chart-controls-bar > div > div.seriesControlWrapper-BXXUwft2 > div:nth-child(3) > button")
    await  delay(1000)
    await page.click("body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--center > div.chart-toolbar.chart-controls-bar > div > div.seriesControlWrapper-BXXUwft2 > div:nth-child(3) > button")
-       console.log("i click adj twice")
+
    }
 
    }

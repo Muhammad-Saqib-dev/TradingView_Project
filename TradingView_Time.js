@@ -88,7 +88,7 @@ const runTest = async () => {
         .then(() => "sidebar visible"),
     ]);
 
-    console.log("First available element:", firstAvailableElement);
+
     if (firstAvailableElement == "sidebar visible") {
       let stockPriceVisible = false;
 
@@ -125,7 +125,7 @@ const runTest = async () => {
         TIMEOUT)
     }
 
-    console.log("Script Finished");
+    console.log("Time Script Finished");
     // Close the browser
   } catch (error) {
     console.log(error);

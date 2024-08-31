@@ -97,7 +97,7 @@ const runTest = async () => {
         .then(() => "sidebar visible"),
     ]);
 
-    console.log("First available element:", firstAvailableElement);
+   
 
     if (firstAvailableElement == "sidebar visible") {
       let stockPriceVisible = false;
@@ -143,7 +143,7 @@ const runTest = async () => {
       
     }
 
-    console.log("Script Finished");
+    console.log("Recording Script Finished");
     // Close the browser
   } catch (error) {
     console.log(error);
@@ -152,8 +152,6 @@ const runTest = async () => {
     // // Stop the recording
     await browser.close();
     await playVideo(recorder[1]);
-
-    console.log("Recording Script is closed")
     process.exit();
   }
 };

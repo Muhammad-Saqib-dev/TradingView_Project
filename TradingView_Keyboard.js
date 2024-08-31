@@ -168,7 +168,7 @@ const runTest = async () => {
         .then(() => "sidebar visible"),
     ]);
 
-    console.log("First available element:", firstAvailableElement);
+    
     if (firstAvailableElement == "sidebar visible") {
       let stockPriceVisible = false;
 
@@ -229,7 +229,7 @@ const runTest = async () => {
       );
     }
 
-    console.log("Script Finished");
+    console.log("Keyboard Script Finished");
     // Close the browser
   } catch (error) {
     console.log(error);

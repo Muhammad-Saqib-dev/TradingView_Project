@@ -108,13 +108,13 @@ export async function login(
         .then(() => "LoggedIn"),
     ]);
 
-    console.log("Logged in status:", verificationChecking);
+   
 
     if (
       verificationChecking == "Verfication Needed" ||
       verificationChecking == "Two factor Auth"
     ) {
-      console.log("verification Needed");
+      
       await delay(jsonData.loginWait);
       await saveCookies(page, cookieFilePath);
 
@@ -163,7 +163,6 @@ export async function RecordingFunction(
 
     // Cleanup function for SIGINT and SIGTERM
 const cleanup = async (fileName) => {
-  console.log("Caught interrupt signal, stopping recorder...");
 
   if (recorder) {
     try {
@@ -198,6 +197,8 @@ if(fileName){
   
 }
 
+console.log("Recording Script is closed")
+
 
   process.exit();
 };
@@ -219,12 +220,11 @@ if(fileName){
       listNameSelector
     );
   
-    console.log("i am list name", listName);
+    console.log("active list name", listName);
   
     if (listName == (process.argv[2] ? process.argv[2] : jsonData.defaultList)) {
-      console.log("deafult list is already selected");
+    
     } else {
-      console.log("i selecting the new list")
       const favListBtn = await page.$("span.titleRow-mQBvegEO"); // Wait for the email input field to load
   
       await page.evaluate((listBtn) => listBtn.click(), favListBtn);
@@ -250,7 +250,6 @@ if(fileName){
           .then(() => "open list btn is visible"),
       ]);
   
-      console.log("I am comment", firstAvailableElement);
   
       if (firstAvailableElement == "open list btn is visible") {
         
@@ -268,7 +267,7 @@ if(fileName){
         "#overlap-manager-root > div:nth-child(2) > div > div.dialog-qyCw0PaN.dialog-b8SxMnzX.dialog-XuENC387.dialog-aRAWUDhF.rounded-aRAWUDhF.shadowed-aRAWUDhF > div > div.wrapper-nGEmjtaX > div.dialogContent-XuENC387 > div > div > div > div > div"
       );
   
-      console.log("i am total list : ", favList.length);
+      console.log("i am total list count : ", favList.length);
   
       // Define the title you want to match
       let titleFound = false;
@@ -361,7 +360,7 @@ if(fileName){
       "body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas > div > div"
     ); // Wait for the email input field to load
   
-    console.log("I am total companies stock", totalCompanies.length);
+    console.log("I am total companies stock count", totalCompanies.length - 2);
 
       // Handle cleanup on Ctrl+C
   ensureDirectoryExists(jsonData.RecordingsOutputFolder);
@@ -395,7 +394,6 @@ if(fileName){
 // Register cleanup function for SIGINT and SIGTERM
 rl.on("SIGINT", async () => {
   console.log("Caught Ctrl+C, stopping recorder...");
-  console.log("i am file name", filePath)
   await cleanup(filePath);
 });
   
@@ -418,7 +416,6 @@ rl.on("SIGINT", async () => {
         break;
       }
       if (i == totalCompanies.length - 1) {
-        console.log("i am last company");
         continue;
       }
       
@@ -486,7 +483,13 @@ rl.on("SIGINT", async () => {
     
             // Check if textContent is a number
             if (!isNaN(parseFloat(textContent)) || textContent == "Invalid symbol") {
-              console.log(`Number found: ${textContent}`);
+              const stock = await page.$("div.titleWrapper-l31H9iuA.mainTitle-l31H9iuA.apply-overflow-tooltip.withDot-l31H9iuA.apply-common-tooltip.withAction-l31H9iuA > button")
+              const currentStock = await page.evaluate(
+                (el) => el.textContent.trim(),
+                stock
+              );
+
+              console.log(`Current Stock Name:${currentStock} and  Price: ${textContent}`);
               break; // Exit loop if a number is found
             } else {
               console.log(`Not a number: ${textContent}`);
@@ -501,7 +504,10 @@ rl.on("SIGINT", async () => {
   
         await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL)); // Wait before the next check
       }
-      await clickAdjBtn(page)
+      if(i == 1){
+
+        await clickAdjBtn(page)
+      }
       for (let time = 0; time < timeFrameArray.length; time++) {
         const timeSelector = await page.waitForSelector(
           "#header-toolbar-intervals > button > div > div"
@@ -512,7 +518,6 @@ rl.on("SIGINT", async () => {
           timeSelector
         );
   
-        console.log("I am time frame", currenTime);
   
         if (
           currenTime ==
@@ -521,7 +526,6 @@ rl.on("SIGINT", async () => {
               : convertTimeFrame(jsonData.recordingTimeFrame)) &&
           time == 0
         ) {
-          console.log("the time is same ");
           continue;
         }
         if (time > 0) {
@@ -541,7 +545,6 @@ rl.on("SIGINT", async () => {
         await delay(1000);
   
         await page.evaluate((element) => element.click(), timeFrame);
-        await clickAdjBtn(page)
       }
     }
 
@@ -549,7 +552,6 @@ rl.on("SIGINT", async () => {
     
     
   } catch (error) {
-  console.log("i am file name", filePath)
 
     console.log(error)
     await cleanup(filePath)
@@ -584,7 +586,7 @@ export async function TimeFunction(
     listNameSelector
   );
 
-  console.log("i am cuurent list name", listName);
+  console.log("i am active list name", listName);
 
 
   function getSelectors(key1, key2, key3) {
@@ -612,7 +614,7 @@ export async function TimeFunction(
   }
 
   if (listName == (process.argv[2] ? process.argv[2] : jsonData.defaultList)) {
-    console.log("deafult list is already selected");
+    
   } else {
     const favListBtn = await page.$("span.titleRow-mQBvegEO"); // Wait for the email input field to load
 
@@ -656,7 +658,7 @@ export async function TimeFunction(
       "#overlap-manager-root > div:nth-child(2) > div > div.dialog-qyCw0PaN.dialog-b8SxMnzX.dialog-XuENC387.dialog-aRAWUDhF.rounded-aRAWUDhF.shadowed-aRAWUDhF > div > div.wrapper-nGEmjtaX > div.dialogContent-XuENC387 > div > div > div > div > div"
     );
 
-    console.log("i am total list : ", favList.length);
+    console.log("i am total list count : ", favList.length);
 
     // Define the title you want to match
     const targetTitle = process.argv[2];
@@ -750,7 +752,7 @@ export async function TimeFunction(
     "body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas > div > div"
   ); // Wait for the email input field to load
 
-  console.log("I am total companies stock", totalCompanies.length);
+  console.log("I am total companies stock count", totalCompanies.length -2);
 
   for (let i = 1; i < totalCompanies.length; i++) {
     if (result?.length > 0) {
@@ -769,7 +771,6 @@ export async function TimeFunction(
       break;
     }
     if (i == totalCompanies.length - 1) {
-      console.log("i am last company");
       continue;
     }
     
@@ -837,7 +838,13 @@ export async function TimeFunction(
               if(textContent == "Invalid symbol"){
                 invalidSymbol = true
               }
-              console.log(`Number found: ${textContent}`);
+              const stock = await page.$("div.titleWrapper-l31H9iuA.mainTitle-l31H9iuA.apply-overflow-tooltip.withDot-l31H9iuA.apply-common-tooltip.withAction-l31H9iuA > button")
+              const currentStock = await page.evaluate(
+                (el) => el.textContent.trim(),
+                stock
+              );
+
+              console.log(`Current Stock Name:${currentStock} and  Price: ${textContent}`);
               break; // Exit loop if a number is found
             } else {
               console.log(`Not a number: ${textContent}`);
@@ -852,7 +859,10 @@ export async function TimeFunction(
   
         await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL)); // Wait before the next check
       }
-      await clickAdjBtn(page)
+      if(i == 1){
+
+        await clickAdjBtn(page)
+      }
     for (let time = 0; time < timeFrameArray.length; time++) {
       if(invalidSymbol){
         console.log("break, invalid symbol")
@@ -868,7 +878,6 @@ export async function TimeFunction(
         timeSelector
       );
 
-      console.log("I am time frame", currenTime);
 
       if (
         currenTime ==
@@ -897,7 +906,6 @@ export async function TimeFunction(
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       await page.evaluate((element) => element.click(), timeFrame);
-      await clickAdjBtn(page)
       if(time == timeFrameArray.length - 1){
         await delay(3000)
       }
@@ -935,7 +943,7 @@ export async function KeyboardFunction(
     listNameSelector
   );
 
-  console.log("i am list name", listName);
+  console.log("Current list name", listName);
 
   function getSelectors(key1, key2, key3) {
     const result = [
@@ -962,9 +970,7 @@ export async function KeyboardFunction(
   }
 
   if (listName == (process.argv[2] ? process.argv[2] : jsonData.defaultList)) {
-    console.log("deafult list is already selected");
   } else {
-    console.log("i am else block")
     const favListBtn = await page.$("span.titleRow-mQBvegEO"); // Wait for the email input field to load
 
     await page.evaluate((listBtn) => listBtn.click(), favListBtn);
@@ -990,7 +996,7 @@ export async function KeyboardFunction(
         .then(() => "open list btn is visible"),
     ]);
 
-    console.log("I am comment", firstAvailableElement);
+
 
     if (firstAvailableElement == "open list btn is visible") {
       
@@ -1008,7 +1014,7 @@ export async function KeyboardFunction(
       "#overlap-manager-root > div:nth-child(2) > div > div.dialog-qyCw0PaN.dialog-b8SxMnzX.dialog-XuENC387.dialog-aRAWUDhF.rounded-aRAWUDhF.shadowed-aRAWUDhF > div > div.wrapper-nGEmjtaX > div.dialogContent-XuENC387 > div > div > div > div > div"
     );
 
-    console.log("i am total list : ", favList.length);
+    console.log("i am total list count : ", favList.length);
 
     // Define the title you want to match
     const targetTitle = process.argv[2];
@@ -1025,7 +1031,7 @@ export async function KeyboardFunction(
           : "Title not found";
       });
 
-      console.log("Title: ", title);
+      console.log("list name: ", title);
 
       if (title === targetTitle) {
         console.log(`Found matching title: ${title}, clicking it.`);
@@ -1053,7 +1059,7 @@ export async function KeyboardFunction(
             : "Title not found";
         });
 
-        console.log("Title: ", title);
+        console.log("list name: ", title);
 
         if (title === defaultList) {
           console.log(`Found matching title: ${title}, clicking it.`);
@@ -1095,14 +1101,13 @@ export async function KeyboardFunction(
     jsonData.timeFrame3
   );
 
-  console.log("i am result outside", result);
 
   await new Promise((resolve) => setTimeout(resolve, 3000));
   const totalCompanies = await page.$$(
     "body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas > div > div"
   ); // Wait for the email input field to load
 
-  console.log("I am total companies stock", totalCompanies.length);
+  console.log("I am total companies stocks count", totalCompanies.length -2);
 
   for (let i = 1; i < totalCompanies.length; i++) {
     if (result?.length > 0) {
@@ -1116,33 +1121,30 @@ export async function KeyboardFunction(
       break;
     }
     if (listNotFound) {
-      console.log("List not found");
+      console.log("Break, List not found");
       break;
     }
-    console.log("I am always i: ", i);
     if (
       (previousCompany && i == 1) ||
       (nextCompanyItteration && i == totalCompanies.length - 2)
     ) {
       previousCompany = false;
       nextCompanyItteration = false;
-      console.log("first company and cant go previous more");
       i--;
     } else {
-      console.log("i am i ater the decrement ", i);
       // Check if the Tab key was pressed
 
       if (i == totalCompanies.length - 1) {
-        console.log("i am last company");
+       
         continue;
       }
-      console.log("I am inside the companies loop");
+      
       if (i > 1) {
         await page.evaluate(() => {
           document.activeElement.blur();
           document.body.focus();
         });
-        console.log("I am inside the companies loop if condition");
+       
 
         if (nextCompany) {
           nextCompany = false;
@@ -1185,7 +1187,13 @@ export async function KeyboardFunction(
 
           // Check if textContent is a number
           if (!isNaN(parseFloat(textContent))) {
-            console.log(`Number found: ${textContent}`);
+            const stock = await page.$("div.titleWrapper-l31H9iuA.mainTitle-l31H9iuA.apply-overflow-tooltip.withDot-l31H9iuA.apply-common-tooltip.withAction-l31H9iuA > button")
+              const currentStock = await page.evaluate(
+                (el) => el.textContent.trim(),
+                stock
+              );
+
+              console.log(`Current Stock Name:${currentStock} and  Price: ${textContent}`);
             break; // Exit loop if a number is found
           } else {
             console.log(`Not a number: ${textContent}`);
@@ -1196,10 +1204,12 @@ export async function KeyboardFunction(
 
         await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL)); // Wait before the next check
       }
-      await clickAdjBtn(page)
+      if(i == 1){
+
+        await clickAdjBtn(page)
+      }
   
       for (let time = 0; time < timeFrameArray.length; time++) {
-        console.log("I am the timeFrame loop");
         const timeSelector = await page.waitForSelector(
           "div.titleWrapper-l31H9iuA.intervalTitle-l31H9iuA.apply-overflow-tooltip.withDot-l31H9iuA.apply-common-tooltip.withAction-l31H9iuA > button"
         );
@@ -1210,7 +1220,6 @@ export async function KeyboardFunction(
         );
 
         if (currenTime == jsonData.timeFrame1 && time == 0) {
-          console.log("the time is same ");
           continue;
         }
 
@@ -1222,39 +1231,37 @@ export async function KeyboardFunction(
           const keyResult = await waitForSpaceBar(page);
           // If Tab is pressed, break the loop
           if (keyResult.key === "Tab") {
-            console.log(`Tab key pressed. Moving to the next company...`);
+            
             if (i == totalCompanies.length - 2) {
-              console.log("i am the last stock");
+             
               await page.evaluate(() => {
                 alert(
-                  "We can't go on the next stock because we are on the last stock"
+                  "We can't go to the next stock because we are on the last stock"
                 );
               });
               nextCompanyItteration = true;
               i = i - 1;
               break;
             } else {
-              console.log("I am the else block of tab button");
+              
 
               nextCompany = true;
               break; // Skip to the next iteration of the parent loop
             }
           } else if (keyResult.key === "Control") {
-            console.log(`key Control. Moving to the previous company...`);
+            
             if (i === 1) {
               // Check some condition after the action
               await page.evaluate(() => {
                 alert(
-                  "We can't go on the previous stock because we are on the first stock"
+                  "We can't go to the previous stock because we are on the first stock"
                 );
               });
               previousCompany = true;
               i = i - 1;
               break;
             } else {
-              console.log("I am the else block of delete button");
               nextCompany = true;
-              console.log("i am i before the decrement ", i);
               i = i - 2;
               break; // Skip to the next iteration of the parent loop
             }
@@ -1276,7 +1283,6 @@ export async function KeyboardFunction(
         await new Promise((resolve) => setTimeout(resolve, 1000));
         
         await page.evaluate((element) => element.click(), timeFrame);
-        await clickAdjBtn(page)
       }
     }
   }
