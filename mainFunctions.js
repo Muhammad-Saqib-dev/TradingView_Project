@@ -5,6 +5,7 @@ import {
   checkKeysAvailability,
   clickAdjBtn,
   convertTimeFrame,
+  getCompareList,
   getSelectors,
   playVideo,
   saveCookies,
@@ -14,7 +15,6 @@ import { ensureDirectoryExists } from "./functions.js";
 import { getNextFileNumber } from "./functions.js";
 import { getIndianDate } from "./functions.js";
 import { delay } from "./functions.js";
-
 
 //////////////////////////////////////////////
 //////////////////////////////////////////////
@@ -108,13 +108,10 @@ export async function login(
         .then(() => "LoggedIn"),
     ]);
 
-   
-
     if (
       verificationChecking == "Verfication Needed" ||
       verificationChecking == "Two factor Auth"
     ) {
-      
       await delay(jsonData.loginWait);
       await saveCookies(page, cookieFilePath);
 
@@ -144,7 +141,6 @@ export async function login(
 /////////////////////////////////////////////
 /////////////////////////////////////////////
 
-
 export async function RecordingFunction(
   page,
   jsonData,
@@ -154,81 +150,496 @@ export async function RecordingFunction(
   TIMEOUT,
   browser
 ) {
-
-  let filePath
+  let filePath;
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
   });
 
-    // Cleanup function for SIGINT and SIGTERM
-const cleanup = async (fileName) => {
-
-  if (recorder) {
-    try {
-      await recorder.stop();
-      console.log("Recording stopped gracefully.");
-    } catch (error) {
-      console.error("Error stopping the recorder:", error);
+  // Cleanup function for SIGINT and SIGTERM
+  const cleanup = async (fileName) => {
+    if (recorder) {
+      try {
+        await recorder.stop();
+        console.log("Recording stopped gracefully.");
+      } catch (error) {
+        console.error("Error stopping the recorder:", error);
+      }
+    } else {
+      console.log("No recorder initialized.");
     }
-  } else {
-    console.log("No recorder initialized.");
-  }
 
-  // Perform any other necessary cleanup here
-  if (browser) {
-    try {
-      await browser.close();
-      console.log("Browser closed gracefully.");
-    } catch (error) {
-      console.error("Error closing the browser:", error);
+    // Perform any other necessary cleanup here
+    if (browser) {
+      try {
+        await browser.close();
+        console.log("Browser closed gracefully.");
+      } catch (error) {
+        console.error("Error closing the browser:", error);
+      }
     }
-  }
 
-  
-if(fileName){
+    if (fileName) {
+      try {
+        await playVideo(fileName);
+      } catch (error) {
+        console.error("Error playing video:", error);
+      }
+    }
+
+    console.log("Recording Script is closed");
+
+    process.exit();
+  };
 
   try {
-  
-    await playVideo(fileName);
-  } catch (error) {
-    console.error("Error playing video:", error);
-  }
-  
-}
-
-console.log("Recording Script is closed")
-
-
-  process.exit();
-};
-
-
-
-  try {
-    
     let result;
     let timeFrameArray;
     await delay(1000);
+
+    if(jsonData.listIteration > 1){
+
+      ensureDirectoryExists(jsonData.RecordingsOutputFolder);
+      const currentDate = getIndianDate();
+      const baseName = `${
+        process.argv[2] ? process.argv[2] : jsonData.defaultList
+      }-${currentDate}-${
+        process.argv[3] ? process.argv[3] : jsonData.recordingTimeFrame
+      }`;
+      const extension = ".mp4";
+   
+      // Get the next available file number
+      const fileName = await getNextFileNumber(
+        jsonData.RecordingsOutputFolder,
+        baseName,
+        extension
+      );
+   
+      // Set up the screen recorder
+      recorder = new PuppeteerScreenRecorder(page);
+   
+      // Start the recording with the unique file name
+      await recorder.start(path.join(jsonData.RecordingsOutputFolder, fileName));
+   
+      filePath = path.join(jsonData.RecordingsOutputFolder, fileName);
+   
+      // Register cleanup function for SIGINT and SIGTERM
+      rl.on("SIGINT", async () => {
+        console.log("Caught Ctrl+C, stopping recorder...");
+        await cleanup(filePath);
+      });
+    }
+
+
+ for (let l = 1; l <= jsonData.listIteration; l++) {
+
+   const listNameSelector = await page.waitForSelector(
+     "span.titleRow-mQBvegEO"
+   );
+
+   const listName = await page.evaluate(
+     (listBtn) => listBtn.textContent,
+     listNameSelector
+   );
+
+   console.log("active list name", listName);
+
+   let compareList = getCompareList(l)
+
+   if (
+     listName == (process.argv[2] ? process.argv[2] : compareList)
+   ) {
+   } else {
+     const favListBtn = await page.$("span.titleRow-mQBvegEO"); // Wait for the email input field to load
+
+     await page.evaluate((listBtn) => listBtn.click(), favListBtn);
+
+     const firstAvailableElement = await Promise.race([
+       page
+         .waitForSelector(
+           "#overlap-manager-root > div:nth-child(2) > div > div.dialog-qyCw0PaN.dialog-b8SxMnzX.dialog-XuENC387.dialog-aRAWUDhF.rounded-aRAWUDhF.shadowed-aRAWUDhF > div > div.wrapper-nGEmjtaX > div.dialogContent-XuENC387 > div > div > div > div > div",
+           {
+             visible: true,
+             timeout: 60000,
+           }
+         )
+         .then(() => "List is visible"),
+       page
+         .waitForSelector(
+           "#overlap-manager-root > div:nth-child(2) > span > div.watchlistMenu-mQBvegEO.menuWrap-Kq3ruQo8 > div > div > div:nth-child(11)",
+           {
+             visible: true,
+             timeout: 60000,
+           }
+         )
+         .then(() => "open list btn is visible"),
+     ]);
+
+     if (firstAvailableElement == "open list btn is visible") {
+       await delay(1000);
+       await page.click(
+         "#overlap-manager-root > div:nth-child(2) > span > div.watchlistMenu-mQBvegEO.menuWrap-Kq3ruQo8 > div > div > div:nth-child(11)"
+       );
+
+       await delay(6000);
+     } else {
+       await delay(6000);
+     }
+
+     const favList = await page.$$(
+       "#overlap-manager-root > div:nth-child(2) > div > div.dialog-qyCw0PaN.dialog-b8SxMnzX.dialog-XuENC387.dialog-aRAWUDhF.rounded-aRAWUDhF.shadowed-aRAWUDhF > div > div.wrapper-nGEmjtaX > div.dialogContent-XuENC387 > div > div > div > div > div"
+     );
+
+     console.log("i am total list count : ", favList.length);
+
+     // Define the title you want to match
+     let titleFound = false;
+     const targetTitle = process.argv[2];
+     const defaultList = compareList;
+     // Initialize a flag to check if the title was found
+
+     for (const fav of favList) {
+       const title = await fav.evaluate((el) => {
+         // Find the child element with a class name that starts with "title"
+         const titleElement = el.querySelector('[class^="title"]');
+         return titleElement
+           ? titleElement.textContent.trim()
+           : "Title not found";
+       });
+
+       console.log("list name: ", title);
+
+       if (title === targetTitle) {
+         console.log(`Found matching title: ${title}, clicking it.`);
+         // Click on the title element
+         await fav.evaluate((el) => {
+           const titleElement = el.querySelector('[class^="title"]');
+           if (titleElement) {
+             titleElement.click();
+           }
+         });
+         titleFound = true; // Mark that the title was found
+         break; // Stop the loop once the title is found and clicked
+       }
+     }
+
+     // If `process.argv[2]` is not provided, handle that scenario
+     if (!process.argv[2]) {
+       console.log(
+         "No list name provided in the command line argument , clicking default list item."
+       );
+       for (const fav of favList) {
+         const title = await fav.evaluate((el) => {
+           // Find the child element with a class name that starts with "title"
+           const titleElement = el.querySelector('[class^="title"]');
+           return titleElement
+             ? titleElement.textContent.trim()
+             : "Title not found";
+         });
+
+         console.log("Title: ", title);
+
+         if (title === defaultList) {
+           console.log(`Found matching title: ${title}, clicking it.`);
+           // Click on the title element
+           await fav.evaluate((el) => {
+             const titleElement = el.querySelector('[class^="title"]');
+             if (titleElement) {
+               titleElement.click();
+             }
+           });
+           titleFound = true; // Mark that the title was found
+           break; // Stop the loop once the title is found and clicked
+         }
+       }
+       console.log("Clicked default list item.");
+     }
+
+     if (!titleFound) {
+       console.log("given list not found");
+       listNotFound = true;
+       // If no matching title was found after checking all items
+       await page.evaluate(
+         (title) => {
+           alert(`No list found with the given name "${title}"`);
+         },
+         targetTitle ? targetTitle : defaultList
+       );
+       console.log("No matching title found.");
+     }
+   }
+   timeFrameArray = getSelectors(
+     process.argv[3] ? process.argv[3] : jsonData.recordingTimeFrame
+   );
+   // Example usage:
+   result = checkKeysAvailability(
+     process.argv[3] ? process.argv[3] : jsonData.recordingTimeFrame
+   );
+
+   await delay(3000);
+   const totalCompanies = await page.$$(
+     "body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas > div > div"
+   ); // Wait for the email input field to load
+
+   console.log("I am total companies stock count", totalCompanies.length - 2);
+
+   if(jsonData.listIteration == 1){
+
+     ensureDirectoryExists(jsonData.RecordingsOutputFolder);
+     const currentDate = getIndianDate();
+     const baseName = `${
+       process.argv[2] ? process.argv[2] : jsonData.defaultList
+     }-${currentDate}-${
+       process.argv[3] ? process.argv[3] : jsonData.recordingTimeFrame
+     }`;
+     const extension = ".mp4";
   
-    const listNameSelector = await page.waitForSelector(
-      "span.titleRow-mQBvegEO"
-    );
+     // Get the next available file number
+     const fileName = await getNextFileNumber(
+       jsonData.RecordingsOutputFolder,
+       baseName,
+       extension
+     );
   
+     // Set up the screen recorder
+     recorder = new PuppeteerScreenRecorder(page);
+  
+     // Start the recording with the unique file name
+     await recorder.start(path.join(jsonData.RecordingsOutputFolder, fileName));
+  
+     filePath = path.join(jsonData.RecordingsOutputFolder, fileName);
+  
+     // Register cleanup function for SIGINT and SIGTERM
+     rl.on("SIGINT", async () => {
+       console.log("Caught Ctrl+C, stopping recorder...");
+       await cleanup(filePath);
+     });
+   }
+
+   
+
+   for (let i = 1; i < totalCompanies.length; i++) {
+     if (result?.length > 0) {
+       console.log("i am break because the timeFrame didnt exists ");
+       // If no matching title was found after checking all items
+       await page.evaluate((timeFrame) => {
+         const formattedResult = timeFrame.join(", ");
+         alert(
+           `Wrong timefrmae is mentioned in the config file "${formattedResult}"`
+         );
+       }, result);
+       break;
+     }
+
+     if (listNotFound) {
+       console.log("i am break because list is not exists ");
+       break;
+     }
+     if (i == totalCompanies.length - 1) {
+       continue;
+     }
+
+     if (i > 1) {
+       await new Promise((resolve) =>
+         setTimeout(resolve, jsonData.recordingIntervalDelay)
+       );
+     }
+     const stockComany = await page.waitForSelector(
+       `body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas > div div:nth-child(${
+         i + 1 == totalCompanies.length ? i : i + 1
+       })  > div > div > span.cell-RsFlttSS.last-RsFlttSS`
+     );
+     // await page.evaluate(element => element.click(), stockComany)
+     await page.click(
+       `body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas > div div:nth-child(${
+         i + 1 == totalCompanies.length ? i : i + 1
+       })  > div > div > span.cell-RsFlttSS.last-RsFlttSS`,
+       { clickCount: 2 }
+     );
+
+     await delay(3000);
+     const stockPriceSelector =
+       "body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-detail > div.widgetbar-widgetbody > div > div.wrapper-Tv7LSjUz > div.container-qWcO4bp9.widgetWrapper-BSF4XTsE.userSelectText-BSF4XTsE.offsetDisabled-BSF4XTsE > span.priceWrapper-qWcO4bp9 > span.highlight-maJ2WnzA.price-qWcO4bp9";
+     const notAvailableSelector = "span.invalid-lu2ARROZ";
+
+     const startTime = Date.now();
+
+     while (Date.now() - startTime < TIMEOUT) {
+       try {
+         const firstAvailableElement = await Promise.race([
+           page
+             .waitForSelector(stockPriceSelector, {
+               visible: true,
+               timeout: 60000,
+             })
+             .then(() => "Stock Price Available"),
+           page
+             .waitForSelector(notAvailableSelector, {
+               visible: true,
+               timeout: 60000,
+             })
+             .then(() => "invalid symbol"),
+         ]);
+
+         if (firstAvailableElement) {
+           let textContent;
+           if (firstAvailableElement == "Stock Price Available") {
+             const element = await page.$(stockPriceSelector);
+             textContent = await page.evaluate(
+               (el) => el.textContent.trim(),
+               element
+             );
+           } else if (firstAvailableElement == "invalid symbol") {
+             const notAvailable = await page.$(notAvailableSelector);
+             textContent = await page.evaluate(
+               (el) => el.textContent.trim(),
+               notAvailable
+             );
+           }
+
+           // Check if textContent is a number
+           if (
+             !isNaN(parseFloat(textContent)) ||
+             textContent == "Invalid symbol"
+           ) {
+             const stock = await page.$(
+               "div.titleWrapper-l31H9iuA.mainTitle-l31H9iuA.apply-overflow-tooltip.withDot-l31H9iuA.apply-common-tooltip.withAction-l31H9iuA > button"
+             );
+             const currentStock = await page.evaluate(
+               (el) => el.textContent.trim(),
+               stock
+             );
+
+             console.log(
+               `Current Stock Name:${currentStock} and  Price: ${textContent}`
+             );
+             break; // Exit loop if a number is found
+           } else {
+             console.log(`Not a number: ${textContent}`);
+           }
+         } else {
+           console.log("Element not found");
+         }
+       } catch (error) {
+         console.log("i am not available, stock price");
+       }
+
+       await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL)); // Wait before the next check
+     }
+     if (i == 1) {
+       await clickAdjBtn(page);
+     }
+     for (let time = 0; time < timeFrameArray.length; time++) {
+       const timeSelector = await page.waitForSelector(
+         "#header-toolbar-intervals > button > div > div"
+       );
+
+       const currenTime = await page.evaluate(
+         (time) => time.innerHTML.trim(),
+         timeSelector
+       );
+
+       if (
+         currenTime ==
+           (process.argv[3]
+             ? convertTimeFrame(process.argv[3])
+             : convertTimeFrame(jsonData.recordingTimeFrame)) &&
+         time == 0
+       ) {
+         continue;
+       }
+       if (time > 0) {
+         await new Promise((resolve) =>
+           setTimeout(resolve, jsonData.waitingTime)
+         );
+       } else {
+         await delay(2000);
+       }
+       const timeFrameBtn = await page.waitForSelector(
+         "#header-toolbar-intervals > button > div > div"
+       ); // Wait for the email input field to load
+       await page.evaluate((element) => element.click(), timeFrameBtn);
+
+       const timeFrame = await page.waitForSelector(timeFrameArray[time]);
+       // const elementHTML = await page.evaluate(el => el.innerHTML, timeFrame)
+       await delay(1000);
+
+       await page.evaluate((element) => element.click(), timeFrame);
+     }
+   }
+
+ }
+
+    return [recorder, filePath];
+  } catch (error) {
+    console.log(error);
+    await cleanup(filePath);
+  }
+}
+
+//////////////////////////////////////////////
+//////////////////////////////////////////////
+/// Time Function
+/////////////////////////////////////////////
+/////////////////////////////////////////////
+
+export async function TimeFunction(
+  page,
+  jsonData,
+  listNotFound,
+  POLL_INTERVAL,
+  TIMEOUT
+) {
+  let result;
+  let timeFrameArray;
+  let invalidSymbol = false;
+  await delay(2000);
+
+  for (let l = 1; l <= jsonData.listIteration; l++) {
+    const listNameSelector = await page.$("span.titleRow-mQBvegEO");
+
     const listName = await page.evaluate(
       (listBtn) => listBtn.textContent,
       listNameSelector
     );
-  
-    console.log("active list name", listName);
-  
-    if (listName == (process.argv[2] ? process.argv[2] : jsonData.defaultList)) {
+
+    console.log("i am active list name", listName);
+
+    function getSelectors(key1, key2, key3) {
+      const result = [
+        timeFramesSelectors[key1],
+        timeFramesSelectors[key2],
+        timeFramesSelectors[key3],
+      ];
+
+      return result;
+    }
+
+    function checkKeysAvailability(...keys) {
+      let missingKeys = [];
+
+      // Iterate over each provided key
+      keys.forEach((key) => {
+        if (!(key in timeFramesSelectors)) {
+          missingKeys.push(key); // Add to missingKeys if the key is not found
+        }
+      });
+
+      // Return the missing keys or null if all keys are found
+      return missingKeys.length > 0 ? missingKeys : [];
+    }
+
+    let compareList = getCompareList(l)
+
     
+    if (
+      listName == (process.argv[2] ? process.argv[2] : compareList)
+    ) {
     } else {
       const favListBtn = await page.$("span.titleRow-mQBvegEO"); // Wait for the email input field to load
-  
+
       await page.evaluate((listBtn) => listBtn.click(), favListBtn);
-  
+
       const firstAvailableElement = await Promise.race([
         page
           .waitForSelector(
@@ -249,34 +660,30 @@ console.log("Recording Script is closed")
           )
           .then(() => "open list btn is visible"),
       ]);
-  
-  
+
       if (firstAvailableElement == "open list btn is visible") {
-        
         await delay(1000);
         await page.click(
           "#overlap-manager-root > div:nth-child(2) > span > div.watchlistMenu-mQBvegEO.menuWrap-Kq3ruQo8 > div > div > div:nth-child(11)"
         );
-  
+
         await delay(6000);
       } else {
         await delay(6000);
       }
-  
+
       const favList = await page.$$(
         "#overlap-manager-root > div:nth-child(2) > div > div.dialog-qyCw0PaN.dialog-b8SxMnzX.dialog-XuENC387.dialog-aRAWUDhF.rounded-aRAWUDhF.shadowed-aRAWUDhF > div > div.wrapper-nGEmjtaX > div.dialogContent-XuENC387 > div > div > div > div > div"
       );
-  
-      console.log("i am total list count : ", favList.length);
-  
-      // Define the title you want to match
-      let titleFound = false;
-      const targetTitle = process.argv[2];
-      const defaultList = jsonData.defaultList;
-      // Initialize a flag to check if the title was found
 
-      
-  
+      console.log("i am total list count : ", favList.length);
+
+      // Define the title you want to match
+      const targetTitle = process.argv[2];
+      const defaultList = compareList
+      // Initialize a flag to check if the title was found
+      let titleFound = false;
+
       for (const fav of favList) {
         const title = await fav.evaluate((el) => {
           // Find the child element with a class name that starts with "title"
@@ -285,9 +692,9 @@ console.log("Recording Script is closed")
             ? titleElement.textContent.trim()
             : "Title not found";
         });
-  
+
         console.log("list name: ", title);
-  
+
         if (title === targetTitle) {
           console.log(`Found matching title: ${title}, clicking it.`);
           // Click on the title element
@@ -301,10 +708,10 @@ console.log("Recording Script is closed")
           break; // Stop the loop once the title is found and clicked
         }
       }
-  
+
       // If `process.argv[2]` is not provided, handle that scenario
       if (!process.argv[2]) {
-        console.log("No list name provided in the command line argument , clicking default list item.");
+        console.log("No title provided, clicking default list item.");
         for (const fav of favList) {
           const title = await fav.evaluate((el) => {
             // Find the child element with a class name that starts with "title"
@@ -313,9 +720,9 @@ console.log("Recording Script is closed")
               ? titleElement.textContent.trim()
               : "Title not found";
           });
-  
-          console.log("Title: ", title);
-  
+
+          console.log("List name: ", title);
+
           if (title === defaultList) {
             console.log(`Found matching title: ${title}, clicking it.`);
             // Click on the title element
@@ -331,9 +738,8 @@ console.log("Recording Script is closed")
         }
         console.log("Clicked default list item.");
       }
-  
+
       if (!titleFound) {
-        console.log("given list not found")
         listNotFound = true;
         // If no matching title was found after checking all items
         await page.evaluate(
@@ -346,61 +752,26 @@ console.log("Recording Script is closed")
       }
     }
     timeFrameArray = getSelectors(
-      process.argv[3] ? process.argv[3] : jsonData.recordingTimeFrame
+      jsonData.timeFrame1,
+      jsonData.timeFrame2,
+      jsonData.timeFrame3
     );
     // Example usage:
     result = checkKeysAvailability(
-      process.argv[3] ? process.argv[3] : jsonData.recordingTimeFrame
+      jsonData.timeFrame1,
+      jsonData.timeFrame2,
+      jsonData.timeFrame3
     );
-  
-    
-  
-    await delay(3000);
+
+    await new Promise((resolve) => setTimeout(resolve, 3000));
     const totalCompanies = await page.$$(
       "body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas > div > div"
     ); // Wait for the email input field to load
-  
+
     console.log("I am total companies stock count", totalCompanies.length - 2);
 
-      // Handle cleanup on Ctrl+C
-  ensureDirectoryExists(jsonData.RecordingsOutputFolder);
-  const currentDate = getIndianDate();
-  const baseName = `${
-    process.argv[2] ? process.argv[2] : jsonData.defaultList
-  }-${currentDate}-${
-    process.argv[3] ? process.argv[3] : jsonData.recordingTimeFrame
-  }`;
-  const extension = ".mp4";
-
-  // Get the next available file number
-  const fileName = await getNextFileNumber(
-    jsonData.RecordingsOutputFolder,
-    baseName,
-    extension
-  );
-
-
-  
-  // Set up the screen recorder
-  recorder = new PuppeteerScreenRecorder(page);
-  
-  // Start the recording with the unique file name
-  await recorder.start(path.join(jsonData.RecordingsOutputFolder, fileName));
-
-  filePath = path.join(jsonData.RecordingsOutputFolder, fileName)
-
-
-
-// Register cleanup function for SIGINT and SIGTERM
-rl.on("SIGINT", async () => {
-  console.log("Caught Ctrl+C, stopping recorder...");
-  await cleanup(filePath);
-});
-  
     for (let i = 1; i < totalCompanies.length; i++) {
-
       if (result?.length > 0) {
-        console.log("i am break because the timeFrame didnt exists ")
         // If no matching title was found after checking all items
         await page.evaluate((timeFrame) => {
           const formattedResult = timeFrame.join(", ");
@@ -410,19 +781,18 @@ rl.on("SIGINT", async () => {
         }, result);
         break;
       }
-  
+
       if (listNotFound) {
-        console.log("i am break because list is not exists ")
+        console.log("List not found");
         break;
       }
       if (i == totalCompanies.length - 1) {
         continue;
       }
-      
+
       if (i > 1) {
-      
         await new Promise((resolve) =>
-          setTimeout(resolve, jsonData.recordingIntervalDelay)
+          setTimeout(resolve, jsonData.waitingTime)
         );
       }
       const stockComany = await page.waitForSelector(
@@ -437,17 +807,16 @@ rl.on("SIGINT", async () => {
         })  > div > div > span.cell-RsFlttSS.last-RsFlttSS`,
         { clickCount: 2 }
       );
-  
-      await delay(3000);
+
+      await new Promise((resolve) => setTimeout(resolve, 3000));
       const stockPriceSelector =
         "body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-detail > div.widgetbar-widgetbody > div > div.wrapper-Tv7LSjUz > div.container-qWcO4bp9.widgetWrapper-BSF4XTsE.userSelectText-BSF4XTsE.offsetDisabled-BSF4XTsE > span.priceWrapper-qWcO4bp9 > span.highlight-maJ2WnzA.price-qWcO4bp9";
-      const notAvailableSelector ="span.invalid-lu2ARROZ";
-       
+      const notAvailableSelector = "span.invalid-lu2ARROZ";
+
       const startTime = Date.now();
-  
+
       while (Date.now() - startTime < TIMEOUT) {
         try {
-          
           const firstAvailableElement = await Promise.race([
             page
               .waitForSelector(stockPriceSelector, {
@@ -462,34 +831,42 @@ rl.on("SIGINT", async () => {
               })
               .then(() => "invalid symbol"),
           ]);
-          
-          
-    
+
           if (firstAvailableElement) {
-            let textContent
-            if(firstAvailableElement == "Stock Price Available"){
+            let textContent;
+            if (firstAvailableElement == "Stock Price Available") {
               const element = await page.$(stockPriceSelector);
-               textContent = await page.evaluate(
+              textContent = await page.evaluate(
                 (el) => el.textContent.trim(),
                 element
               );
-            }else if (firstAvailableElement == "invalid symbol"){
-              const notAvailable = await page.$(notAvailableSelector)
+            } else if (firstAvailableElement == "invalid symbol") {
+              const notAvailable = await page.$(notAvailableSelector);
               textContent = await page.evaluate(
                 (el) => el.textContent.trim(),
                 notAvailable
               );
             }
-    
+
             // Check if textContent is a number
-            if (!isNaN(parseFloat(textContent)) || textContent == "Invalid symbol") {
-              const stock = await page.$("div.titleWrapper-l31H9iuA.mainTitle-l31H9iuA.apply-overflow-tooltip.withDot-l31H9iuA.apply-common-tooltip.withAction-l31H9iuA > button")
+            if (
+              !isNaN(parseFloat(textContent)) ||
+              textContent == "Invalid symbol"
+            ) {
+              if (textContent == "Invalid symbol") {
+                invalidSymbol = true;
+              }
+              const stock = await page.$(
+                "div.titleWrapper-l31H9iuA.mainTitle-l31H9iuA.apply-overflow-tooltip.withDot-l31H9iuA.apply-common-tooltip.withAction-l31H9iuA > button"
+              );
               const currentStock = await page.evaluate(
                 (el) => el.textContent.trim(),
                 stock
               );
 
-              console.log(`Current Stock Name:${currentStock} and  Price: ${textContent}`);
+              console.log(
+                `Current Stock Name:${currentStock} and  Price: ${textContent}`
+              );
               break; // Exit loop if a number is found
             } else {
               console.log(`Not a number: ${textContent}`);
@@ -498,32 +875,37 @@ rl.on("SIGINT", async () => {
             console.log("Element not found");
           }
         } catch (error) {
-          console.log("i am not available, stock price")
-          
+          console.log("i am not available, stock price");
         }
-  
+
         await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL)); // Wait before the next check
       }
-      if(i == 1){
-
-        await clickAdjBtn(page)
+      if (i == 1) {
+        await clickAdjBtn(page);
       }
       for (let time = 0; time < timeFrameArray.length; time++) {
+        if (invalidSymbol) {
+          console.log("break, invalid symbol");
+          invalidSymbol = false;
+          break;
+        }
         const timeSelector = await page.waitForSelector(
           "#header-toolbar-intervals > button > div > div"
         );
-  
+
+      
         const currenTime = await page.evaluate(
           (time) => time.innerHTML.trim(),
           timeSelector
         );
-  
-  
+
+        console.log("I am current time of loop ", currenTime, time,convertTimeFrame(timeFrameArray[time]))
+
         if (
           currenTime ==
             (process.argv[3]
               ? convertTimeFrame(process.argv[3])
-              : convertTimeFrame(jsonData.recordingTimeFrame)) &&
+              : convertTimeFrame(jsonData.timeFrame1)) &&
           time == 0
         ) {
           continue;
@@ -533,381 +915,21 @@ rl.on("SIGINT", async () => {
             setTimeout(resolve, jsonData.waitingTime)
           );
         } else {
-          await delay(2000);
+          await new Promise((resolve) => setTimeout(resolve, 2000));
         }
         const timeFrameBtn = await page.waitForSelector(
           "#header-toolbar-intervals > button > div > div"
         ); // Wait for the email input field to load
         await page.evaluate((element) => element.click(), timeFrameBtn);
-  
+
         const timeFrame = await page.waitForSelector(timeFrameArray[time]);
         // const elementHTML = await page.evaluate(el => el.innerHTML, timeFrame)
-        await delay(1000);
-  
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
         await page.evaluate((element) => element.click(), timeFrame);
-      }
-    }
-
-    return [recorder, filePath]
-    
-    
-  } catch (error) {
-
-    console.log(error)
-    await cleanup(filePath)
-    
-  }
-
-}
-
-//////////////////////////////////////////////
-//////////////////////////////////////////////
-/// Time Function
-/////////////////////////////////////////////
-/////////////////////////////////////////////
-
-export async function TimeFunction(
-  page,
-  jsonData,
-  listNotFound,
-  POLL_INTERVAL,
-  TIMEOUT
-) {
-  let result;
-  let timeFrameArray;
-  let invalidSymbol = false
-  await delay(2000);
-
-  const listNameSelector = await page.$("span.titleRow-mQBvegEO");
-
-
-  const listName = await page.evaluate(
-    (listBtn) => listBtn.textContent,
-    listNameSelector
-  );
-
-  console.log("i am active list name", listName);
-
-
-  function getSelectors(key1, key2, key3) {
-    const result = [
-      timeFramesSelectors[key1],
-      timeFramesSelectors[key2],
-      timeFramesSelectors[key3],
-    ];
-
-    return result;
-  }
-
-  function checkKeysAvailability(...keys) {
-    let missingKeys = [];
-
-    // Iterate over each provided key
-    keys.forEach((key) => {
-      if (!(key in timeFramesSelectors)) {
-        missingKeys.push(key); // Add to missingKeys if the key is not found
-      }
-    });
-
-    // Return the missing keys or null if all keys are found
-    return missingKeys.length > 0 ? missingKeys : [];
-  }
-
-  if (listName == (process.argv[2] ? process.argv[2] : jsonData.defaultList)) {
-    
-  } else {
-    const favListBtn = await page.$("span.titleRow-mQBvegEO"); // Wait for the email input field to load
-
-    await page.evaluate((listBtn) => listBtn.click(), favListBtn);
-
-    const firstAvailableElement = await Promise.race([
-      page
-        .waitForSelector(
-          "#overlap-manager-root > div:nth-child(2) > div > div.dialog-qyCw0PaN.dialog-b8SxMnzX.dialog-XuENC387.dialog-aRAWUDhF.rounded-aRAWUDhF.shadowed-aRAWUDhF > div > div.wrapper-nGEmjtaX > div.dialogContent-XuENC387 > div > div > div > div > div",
-          {
-            visible: true,
-            timeout: 60000,
-          }
-        )
-        .then(() => "List is visible"),
-      page
-        .waitForSelector(
-          "#overlap-manager-root > div:nth-child(2) > span > div.watchlistMenu-mQBvegEO.menuWrap-Kq3ruQo8 > div > div > div:nth-child(11)",
-          {
-            visible: true,
-            timeout: 60000,
-          }
-        )
-        .then(() => "open list btn is visible"),
-    ]);
-
-
-    if (firstAvailableElement == "open list btn is visible") {
-      
-      await delay(1000);
-      await page.click(
-        "#overlap-manager-root > div:nth-child(2) > span > div.watchlistMenu-mQBvegEO.menuWrap-Kq3ruQo8 > div > div > div:nth-child(11)"
-      );
-
-      await delay(6000);
-    } else {
-      await delay(6000);
-    }
-
-    const favList = await page.$$(
-      "#overlap-manager-root > div:nth-child(2) > div > div.dialog-qyCw0PaN.dialog-b8SxMnzX.dialog-XuENC387.dialog-aRAWUDhF.rounded-aRAWUDhF.shadowed-aRAWUDhF > div > div.wrapper-nGEmjtaX > div.dialogContent-XuENC387 > div > div > div > div > div"
-    );
-
-    console.log("i am total list count : ", favList.length);
-
-    // Define the title you want to match
-    const targetTitle = process.argv[2];
-    const defaultList = jsonData.defaultList;
-    // Initialize a flag to check if the title was found
-    let titleFound = false;
-
-    for (const fav of favList) {
-      const title = await fav.evaluate((el) => {
-        // Find the child element with a class name that starts with "title"
-        const titleElement = el.querySelector('[class^="title"]');
-        return titleElement
-          ? titleElement.textContent.trim()
-          : "Title not found";
-      });
-
-      console.log("list name: ", title);
-
-      if (title === targetTitle) {
-        console.log(`Found matching title: ${title}, clicking it.`);
-        // Click on the title element
-        await fav.evaluate((el) => {
-          const titleElement = el.querySelector('[class^="title"]');
-          if (titleElement) {
-            titleElement.click();
-          }
-        });
-        titleFound = true; // Mark that the title was found
-        break; // Stop the loop once the title is found and clicked
-      }
-    }
-
-    // If `process.argv[2]` is not provided, handle that scenario
-    if (!process.argv[2]) {
-      console.log("No title provided, clicking default list item.");
-      for (const fav of favList) {
-        const title = await fav.evaluate((el) => {
-          // Find the child element with a class name that starts with "title"
-          const titleElement = el.querySelector('[class^="title"]');
-          return titleElement
-            ? titleElement.textContent.trim()
-            : "Title not found";
-        });
-
-        console.log("List name: ", title);
-
-        if (title === defaultList) {
-          console.log(`Found matching title: ${title}, clicking it.`);
-          // Click on the title element
-          await fav.evaluate((el) => {
-            const titleElement = el.querySelector('[class^="title"]');
-            if (titleElement) {
-              titleElement.click();
-            }
-          });
-          titleFound = true; // Mark that the title was found
-          break; // Stop the loop once the title is found and clicked
+        if (time == timeFrameArray.length - 1) {
+          await delay(3000);
         }
-      }
-      console.log("Clicked default list item.");
-    }
-
-    if (!titleFound) {
-      listNotFound = true;
-      // If no matching title was found after checking all items
-      await page.evaluate(
-        (title) => {
-          alert(`No list found with the given name "${title}"`);
-        },
-        targetTitle ? targetTitle : defaultList
-      );
-      console.log("No matching title found.");
-    }
-  }
-  timeFrameArray = getSelectors(
-    jsonData.timeFrame1,
-    jsonData.timeFrame2,
-    jsonData.timeFrame3
-  );
-  // Example usage:
-  result = checkKeysAvailability(
-    jsonData.timeFrame1,
-    jsonData.timeFrame2,
-    jsonData.timeFrame3
-  );
-
-  
-
-  await new Promise((resolve) => setTimeout(resolve, 3000));
-  const totalCompanies = await page.$$(
-    "body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas > div > div"
-  ); // Wait for the email input field to load
-
-  console.log("I am total companies stock count", totalCompanies.length -2);
-
-  for (let i = 1; i < totalCompanies.length; i++) {
-    if (result?.length > 0) {
-      // If no matching title was found after checking all items
-      await page.evaluate((timeFrame) => {
-        const formattedResult = timeFrame.join(", ");
-        alert(
-          `Wrong timefrmae is mentioned in the config file "${formattedResult}"`
-        );
-      }, result);
-      break;
-    }
-
-    if (listNotFound) {
-      console.log("List not found");
-      break;
-    }
-    if (i == totalCompanies.length - 1) {
-      continue;
-    }
-    
-    if (i > 1) {
-      await new Promise((resolve) => setTimeout(resolve, jsonData.waitingTime));
-    }
-    const stockComany = await page.waitForSelector(
-      `body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas > div div:nth-child(${
-        i + 1 == totalCompanies.length ? i : i + 1
-      })  > div > div > span.cell-RsFlttSS.last-RsFlttSS`
-    );
-    // await page.evaluate(element => element.click(), stockComany)
-    await page.click(
-      `body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas > div div:nth-child(${
-        i + 1 == totalCompanies.length ? i : i + 1
-      })  > div > div > span.cell-RsFlttSS.last-RsFlttSS`,
-      { clickCount: 2 }
-    );
-
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-    const stockPriceSelector =
-        "body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-detail > div.widgetbar-widgetbody > div > div.wrapper-Tv7LSjUz > div.container-qWcO4bp9.widgetWrapper-BSF4XTsE.userSelectText-BSF4XTsE.offsetDisabled-BSF4XTsE > span.priceWrapper-qWcO4bp9 > span.highlight-maJ2WnzA.price-qWcO4bp9";
-      const notAvailableSelector ="span.invalid-lu2ARROZ";
-       
-      const startTime = Date.now();
-  
-      while (Date.now() - startTime < TIMEOUT) {
-        try {
-          
-          const firstAvailableElement = await Promise.race([
-            page
-              .waitForSelector(stockPriceSelector, {
-                visible: true,
-                timeout: 60000,
-              })
-              .then(() => "Stock Price Available"),
-            page
-              .waitForSelector(notAvailableSelector, {
-                visible: true,
-                timeout: 60000,
-              })
-              .then(() => "invalid symbol"),
-          ]);
-          
-          
-    
-          if (firstAvailableElement) {
-            let textContent
-            if(firstAvailableElement == "Stock Price Available"){
-              const element = await page.$(stockPriceSelector);
-               textContent = await page.evaluate(
-                (el) => el.textContent.trim(),
-                element
-              );
-            }else if (firstAvailableElement == "invalid symbol"){
-              const notAvailable = await page.$(notAvailableSelector)
-              textContent = await page.evaluate(
-                (el) => el.textContent.trim(),
-                notAvailable
-              );
-            }
-    
-            // Check if textContent is a number
-            if (!isNaN(parseFloat(textContent)) || textContent == "Invalid symbol") {
-              if(textContent == "Invalid symbol"){
-                invalidSymbol = true
-              }
-              const stock = await page.$("div.titleWrapper-l31H9iuA.mainTitle-l31H9iuA.apply-overflow-tooltip.withDot-l31H9iuA.apply-common-tooltip.withAction-l31H9iuA > button")
-              const currentStock = await page.evaluate(
-                (el) => el.textContent.trim(),
-                stock
-              );
-
-              console.log(`Current Stock Name:${currentStock} and  Price: ${textContent}`);
-              break; // Exit loop if a number is found
-            } else {
-              console.log(`Not a number: ${textContent}`);
-            }
-          } else {
-            console.log("Element not found");
-          }
-        } catch (error) {
-          console.log("i am not available, stock price")
-          
-        }
-  
-        await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL)); // Wait before the next check
-      }
-      if(i == 1){
-
-        await clickAdjBtn(page)
-      }
-    for (let time = 0; time < timeFrameArray.length; time++) {
-      if(invalidSymbol){
-        console.log("break, invalid symbol")
-        invalidSymbol = false
-        break
-      }
-      const timeSelector = await page.waitForSelector(
-        "#header-toolbar-intervals > button > div > div"
-      );
-
-      const currenTime = await page.evaluate(
-        (time) => time.innerHTML.trim(),
-        timeSelector
-      );
-
-
-      if (
-        currenTime ==
-          (process.argv[3]
-            ? convertTimeFrame(process.argv[3])
-            : convertTimeFrame(jsonData.recordingTimeFrame)) &&
-        time == 0
-      ) {
-        
-        continue;
-      }
-      if (time > 0) {
-        await new Promise((resolve) =>
-          setTimeout(resolve, jsonData.waitingTime)
-        );
-      } else {
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-      }
-      const timeFrameBtn = await page.waitForSelector(
-        "#header-toolbar-intervals > button > div > div"
-      ); // Wait for the email input field to load
-      await page.evaluate((element) => element.click(), timeFrameBtn);
-
-      const timeFrame = await page.waitForSelector(timeFrameArray[time]);
-      // const elementHTML = await page.evaluate(el => el.innerHTML, timeFrame)
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      await page.evaluate((element) => element.click(), timeFrame);
-      if(time == timeFrameArray.length - 1){
-        await delay(3000)
       }
     }
   }
@@ -934,9 +956,7 @@ export async function KeyboardFunction(
   let timeFrameArray;
   await delay(1000);
 
-  const listNameSelector = await page.waitForSelector(
-    "span.titleRow-mQBvegEO"
-  );
+  const listNameSelector = await page.waitForSelector("span.titleRow-mQBvegEO");
 
   const listName = await page.evaluate(
     (listBtn) => listBtn.textContent,
@@ -996,10 +1016,7 @@ export async function KeyboardFunction(
         .then(() => "open list btn is visible"),
     ]);
 
-
-
     if (firstAvailableElement == "open list btn is visible") {
-      
       await delay(1000);
       await page.click(
         "#overlap-manager-root > div:nth-child(2) > span > div.watchlistMenu-mQBvegEO.menuWrap-Kq3ruQo8 > div > div > div:nth-child(11)"
@@ -1101,13 +1118,12 @@ export async function KeyboardFunction(
     jsonData.timeFrame3
   );
 
-
   await new Promise((resolve) => setTimeout(resolve, 3000));
   const totalCompanies = await page.$$(
     "body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas > div > div"
   ); // Wait for the email input field to load
 
-  console.log("I am total companies stocks count", totalCompanies.length -2);
+  console.log("I am total companies stocks count", totalCompanies.length - 2);
 
   for (let i = 1; i < totalCompanies.length; i++) {
     if (result?.length > 0) {
@@ -1135,16 +1151,14 @@ export async function KeyboardFunction(
       // Check if the Tab key was pressed
 
       if (i == totalCompanies.length - 1) {
-       
         continue;
       }
-      
+
       if (i > 1) {
         await page.evaluate(() => {
           document.activeElement.blur();
           document.body.focus();
         });
-       
 
         if (nextCompany) {
           nextCompany = false;
@@ -1187,13 +1201,17 @@ export async function KeyboardFunction(
 
           // Check if textContent is a number
           if (!isNaN(parseFloat(textContent))) {
-            const stock = await page.$("div.titleWrapper-l31H9iuA.mainTitle-l31H9iuA.apply-overflow-tooltip.withDot-l31H9iuA.apply-common-tooltip.withAction-l31H9iuA > button")
-              const currentStock = await page.evaluate(
-                (el) => el.textContent.trim(),
-                stock
-              );
+            const stock = await page.$(
+              "div.titleWrapper-l31H9iuA.mainTitle-l31H9iuA.apply-overflow-tooltip.withDot-l31H9iuA.apply-common-tooltip.withAction-l31H9iuA > button"
+            );
+            const currentStock = await page.evaluate(
+              (el) => el.textContent.trim(),
+              stock
+            );
 
-              console.log(`Current Stock Name:${currentStock} and  Price: ${textContent}`);
+            console.log(
+              `Current Stock Name:${currentStock} and  Price: ${textContent}`
+            );
             break; // Exit loop if a number is found
           } else {
             console.log(`Not a number: ${textContent}`);
@@ -1204,11 +1222,10 @@ export async function KeyboardFunction(
 
         await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL)); // Wait before the next check
       }
-      if(i == 1){
-
-        await clickAdjBtn(page)
+      if (i == 1) {
+        await clickAdjBtn(page);
       }
-  
+
       for (let time = 0; time < timeFrameArray.length; time++) {
         const timeSelector = await page.waitForSelector(
           "div.titleWrapper-l31H9iuA.intervalTitle-l31H9iuA.apply-overflow-tooltip.withDot-l31H9iuA.apply-common-tooltip.withAction-l31H9iuA > button"
@@ -1231,9 +1248,7 @@ export async function KeyboardFunction(
           const keyResult = await waitForSpaceBar(page);
           // If Tab is pressed, break the loop
           if (keyResult.key === "Tab") {
-            
             if (i == totalCompanies.length - 2) {
-             
               await page.evaluate(() => {
                 alert(
                   "We can't go to the next stock because we are on the last stock"
@@ -1243,13 +1258,10 @@ export async function KeyboardFunction(
               i = i - 1;
               break;
             } else {
-              
-
               nextCompany = true;
               break; // Skip to the next iteration of the parent loop
             }
           } else if (keyResult.key === "Control") {
-            
             if (i === 1) {
               // Check some condition after the action
               await page.evaluate(() => {
@@ -1281,7 +1293,7 @@ export async function KeyboardFunction(
         const timeFrame = await page.waitForSelector(timeFrameArray[time]);
         // const elementHTML = await page.evaluate(el => el.innerHTML, timeFrame)
         await new Promise((resolve) => setTimeout(resolve, 1000));
-        
+
         await page.evaluate((element) => element.click(), timeFrame);
       }
     }

@@ -306,3 +306,10 @@ export async function clickAdjBtn (page){
   console.log("adj btn", error)
  }
 }
+
+
+// Function to get the list based on the number dynamically
+export function getCompareList(number) {
+  const listKey = `list${number}`; // Construct the key dynamically, e.g., 'list1', 'list2', etc.
+  return jsonData[listKey]; // Access the list using the dynamically constructed key
+}
