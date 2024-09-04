@@ -191,11 +191,11 @@ export async function RecordingFunction(
 
     process.exit();
   };
-
+  
+  const allList = jsonData.lists
   try {
     let result;
     let timeFrameArray;
-    const allList = jsonData.lists
     await delay(1000);
 
     if(allList.length > 1){
@@ -403,7 +403,7 @@ export async function RecordingFunction(
      ensureDirectoryExists(jsonData.RecordingsOutputFolder);
      const currentDate = getIndianDate();
      const baseName = `${
-       process.argv[2] ? process.argv[2] : allLists[0]
+       process.argv[2] ? process.argv[2] : allList[0]
      }-${currentDate}-${
        process.argv[3] ? process.argv[3] : jsonData.recordingTimeFrame
      }`;
