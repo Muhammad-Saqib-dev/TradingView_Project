@@ -195,14 +195,15 @@ export async function RecordingFunction(
   try {
     let result;
     let timeFrameArray;
+    const allList = jsonData.lists
     await delay(1000);
 
-    if(jsonData.listIteration > 1){
+    if(allList.length > 1){
 
       ensureDirectoryExists(jsonData.RecordingsOutputFolder);
       const currentDate = getIndianDate();
       const baseName = `${
-        process.argv[2] ? process.argv[2] : jsonData.defaultList
+        process.argv[2] ? process.argv[2] : allLists[0]
       }-${currentDate}-${
         process.argv[3] ? process.argv[3] : jsonData.recordingTimeFrame
       }`;
@@ -231,7 +232,7 @@ export async function RecordingFunction(
     }
 
 
- for (let l = 1; l <= jsonData.listIteration; l++) {
+ for (let l = 1; l <= allList.length; l++) {
 
    const listNameSelector = await page.waitForSelector(
      "span.titleRow-mQBvegEO"
@@ -244,7 +245,7 @@ export async function RecordingFunction(
 
    console.log("active list name", listName);
 
-   let compareList = getCompareList(l)
+   let compareList = allList[l - 1]
 
    if (
      listName == (process.argv[2] ? process.argv[2] : compareList)
@@ -390,19 +391,19 @@ export async function RecordingFunction(
     container.scrollBy(0, 2000);
   }, containerSelector);
 
-  await new Promise((resolve) => setTimeout(resolve, 1500));
+  await new Promise((resolve) => setTimeout(resolve, 2000));
    const totalCompanies = await page.$$(
      "body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas > div > div"
    ); // Wait for the email input field to load
 
    console.log("I am total companies stock count", totalCompanies.length - 2);
 
-   if(jsonData.listIteration == 1){
+   if(allList.length == 1){
 
      ensureDirectoryExists(jsonData.RecordingsOutputFolder);
      const currentDate = getIndianDate();
      const baseName = `${
-       process.argv[2] ? process.argv[2] : jsonData.defaultList
+       process.argv[2] ? process.argv[2] : allLists[0]
      }-${currentDate}-${
        process.argv[3] ? process.argv[3] : jsonData.recordingTimeFrame
      }`;
@@ -618,7 +619,10 @@ export async function TimeFunction(
   let invalidSymbol = false;
   await delay(2000);
 
-  for (let l = 1; l <= jsonData.listIteration; l++) {
+  const allList = jsonData.lists
+  
+
+  for (let l = 1; l <= allList.length; l++) {
     const listNameSelector = await page.$("span.titleRow-mQBvegEO");
 
     const listName = await page.evaluate(
@@ -652,7 +656,12 @@ export async function TimeFunction(
       return missingKeys.length > 0 ? missingKeys : [];
     }
 
-    let compareList = getCompareList(l)
+    console.log("this is list ",jsonData.lists)
+    console.log("i am total list length", jsonData.lists.length)
+
+    
+
+    let compareList = allList[l - 1]
 
     
     if (
@@ -800,7 +809,7 @@ export async function TimeFunction(
     container.scrollBy(0, 2000);
   }, containerSelector);
 
-  await new Promise((resolve) => setTimeout(resolve, 1500));
+  await new Promise((resolve) => setTimeout(resolve, 2000));
     const totalCompanies = await page.$$(
       "body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas > div > div"
     ); // Wait for the email input field to load
@@ -1000,6 +1009,7 @@ export async function KeyboardFunction(
 ) {
   let result;
   let timeFrameArray;
+  const allLists = jsonData.lists
   await delay(1000);
 
   const listNameSelector = await page.waitForSelector("span.titleRow-mQBvegEO");
@@ -1035,7 +1045,7 @@ export async function KeyboardFunction(
     return missingKeys.length > 0 ? missingKeys : [];
   }
 
-  if (listName == (process.argv[2] ? process.argv[2] : jsonData.defaultList)) {
+  if (listName == (process.argv[2] ? process.argv[2] : allLists[0])) {
   } else {
     const favListBtn = await page.$("span.titleRow-mQBvegEO"); // Wait for the email input field to load
 
@@ -1081,7 +1091,7 @@ export async function KeyboardFunction(
 
     // Define the title you want to match
     const targetTitle = process.argv[2];
-    const defaultList = jsonData.defaultList;
+    const defaultList = allLists[0];
     // Initialize a flag to check if the title was found
     let titleFound = false;
 
@@ -1178,7 +1188,7 @@ export async function KeyboardFunction(
     container.scrollBy(0, 2000);
   }, containerSelector);
 
-  await new Promise((resolve) => setTimeout(resolve, 1500));
+  await new Promise((resolve) => setTimeout(resolve, 2000));
 
 
 
