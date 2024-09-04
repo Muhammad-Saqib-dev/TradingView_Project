@@ -4,7 +4,7 @@
   "accountPassword": "password786",
   "loginWait":90000,
   "waitingTime": 3000,
-  "listIteration":2,
+  "listIteration":1,
   "list1":"Testing1",
   "list2":"Testing2",
   "list3":"Testing3",

@@ -281,9 +281,9 @@ export async function RecordingFunction(
          "#overlap-manager-root > div:nth-child(2) > span > div.watchlistMenu-mQBvegEO.menuWrap-Kq3ruQo8 > div > div > div:nth-child(11)"
        );
 
-       await delay(6000);
+       await delay(3000);
      } else {
-       await delay(6000);
+       await delay(3000);
      }
 
      const favList = await page.$$(
@@ -377,6 +377,20 @@ export async function RecordingFunction(
    );
 
    await delay(3000);
+    // Wait for the container to be loaded
+  const containerSelector = 'body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas';
+  await page.waitForSelector(containerSelector);
+
+
+  
+
+  // Scroll to the bottom of the container
+  await page.evaluate((selector) => {
+    const container = document.querySelector(selector);
+    container.scrollBy(0, 2000);
+  }, containerSelector);
+
+  await new Promise((resolve) => setTimeout(resolve, 1500));
    const totalCompanies = await page.$$(
      "body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas > div > div"
    ); // Wait for the email input field to load
@@ -449,6 +463,15 @@ export async function RecordingFunction(
          i + 1 == totalCompanies.length ? i : i + 1
        })  > div > div > span.cell-RsFlttSS.last-RsFlttSS`
      );
+     // await page.evaluate(element => element.click(), stockComany)
+     await page.click(
+       `body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas > div div:nth-child(${
+         i + 1 == totalCompanies.length ? i : i + 1
+       })  > div > div > span.cell-RsFlttSS.last-RsFlttSS`,
+       { clickCount: 2 }
+     );
+
+     await delay(500);
      // await page.evaluate(element => element.click(), stockComany)
      await page.click(
        `body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas > div div:nth-child(${
@@ -667,9 +690,9 @@ export async function TimeFunction(
           "#overlap-manager-root > div:nth-child(2) > span > div.watchlistMenu-mQBvegEO.menuWrap-Kq3ruQo8 > div > div > div:nth-child(11)"
         );
 
-        await delay(6000);
+        await delay(3000);
       } else {
-        await delay(6000);
+        await delay(3000);
       }
 
       const favList = await page.$$(
@@ -764,6 +787,20 @@ export async function TimeFunction(
     );
 
     await new Promise((resolve) => setTimeout(resolve, 3000));
+    // Wait for the container to be loaded
+  const containerSelector = 'body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas';
+  await page.waitForSelector(containerSelector);
+
+
+  
+
+  // Scroll to the bottom of the container
+  await page.evaluate((selector) => {
+    const container = document.querySelector(selector);
+    container.scrollBy(0, 2000);
+  }, containerSelector);
+
+  await new Promise((resolve) => setTimeout(resolve, 1500));
     const totalCompanies = await page.$$(
       "body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas > div > div"
     ); // Wait for the email input field to load
@@ -807,6 +844,15 @@ export async function TimeFunction(
         })  > div > div > span.cell-RsFlttSS.last-RsFlttSS`,
         { clickCount: 2 }
       );
+
+      await delay(500);
+     // await page.evaluate(element => element.click(), stockComany)
+     await page.click(
+       `body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas > div div:nth-child(${
+         i + 1 == totalCompanies.length ? i : i + 1
+       })  > div > div > span.cell-RsFlttSS.last-RsFlttSS`,
+       { clickCount: 2 }
+     );
 
       await new Promise((resolve) => setTimeout(resolve, 3000));
       const stockPriceSelector =
@@ -1022,9 +1068,9 @@ export async function KeyboardFunction(
         "#overlap-manager-root > div:nth-child(2) > span > div.watchlistMenu-mQBvegEO.menuWrap-Kq3ruQo8 > div > div > div:nth-child(11)"
       );
 
-      await delay(6000);
+      await delay(3000);
     } else {
-      await delay(6000);
+      await delay(3000);
     }
 
     const favList = await page.$$(
@@ -1119,6 +1165,23 @@ export async function KeyboardFunction(
   );
 
   await new Promise((resolve) => setTimeout(resolve, 3000));
+  // Wait for the container to be loaded
+  const containerSelector = 'body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas';
+  await page.waitForSelector(containerSelector);
+
+
+  
+
+  // Scroll to the bottom of the container
+  await page.evaluate((selector) => {
+    const container = document.querySelector(selector);
+    container.scrollBy(0, 2000);
+  }, containerSelector);
+
+  await new Promise((resolve) => setTimeout(resolve, 1500));
+
+
+
   const totalCompanies = await page.$$(
     "body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas > div > div"
   ); // Wait for the email input field to load
@@ -1185,6 +1248,14 @@ export async function KeyboardFunction(
         })  > div > div > span.cell-RsFlttSS.last-RsFlttSS`,
         { clickCount: 2 }
       );
+      await delay(500);
+     // await page.evaluate(element => element.click(), stockComany)
+     await page.click(
+       `body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas > div div:nth-child(${
+         i + 1 == totalCompanies.length ? i : i + 1
+       })  > div > div > span.cell-RsFlttSS.last-RsFlttSS`,
+       { clickCount: 2 }
+     );
       await new Promise((resolve) => setTimeout(resolve, 1000));
       const stockPriceSelector =
         "body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-detail > div.widgetbar-widgetbody > div > div.wrapper-Tv7LSjUz > div.container-qWcO4bp9.widgetWrapper-BSF4XTsE.userSelectText-BSF4XTsE.offsetDisabled-BSF4XTsE > span.priceWrapper-qWcO4bp9 > span.highlight-maJ2WnzA.price-qWcO4bp9";
