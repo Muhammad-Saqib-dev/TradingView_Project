@@ -4,7 +4,7 @@
   "accountPassword": "password786",
   "loginWait":90000,
   "waitingTime": 3000,
-  "lists":["svpr"],
+ "lists":["svpr"],
   "timeFrame1":"3M",
   "timeFrame2":"6M",
   "timeFrame3":"12M",
