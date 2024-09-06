@@ -287,7 +287,7 @@ export async function RecordingFunction (
           '#overlap-manager-root > div:nth-child(2) > div > div.dialog-qyCw0PaN.dialog-b8SxMnzX.dialog-XuENC387.dialog-aRAWUDhF.rounded-aRAWUDhF.shadowed-aRAWUDhF > div > div.wrapper-nGEmjtaX > div.dialogContent-XuENC387 > div > div > div > div > div'
         )
 
-        console.log('i am total list count : ', favList.length)
+        console.log('List count : ', favList.length)
 
         // Define the title you want to match
         let titleFound = false
@@ -390,7 +390,7 @@ export async function RecordingFunction (
         'body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas > div > div'
       ) // Wait for the email input field to load
 
-      console.log('I am total companies stock count', totalCompanies.length - 2)
+      console.log('companies count', totalCompanies.length - 2)
 
       if (allList.length == 1) {
         ensureDirectoryExists(jsonData.RecordingsOutputFolder)
@@ -428,7 +428,7 @@ export async function RecordingFunction (
 
       for (let i = 1; i < totalCompanies.length; i++) {
         if (result?.length > 0) {
-          console.log('i am break because the timeFrame didnt exists ')
+          console.log('Breaking : the timeFrame doesnt exist')
           // If no matching title was found after checking all items
           await page.evaluate(timeFrame => {
             const formattedResult = timeFrame.join(', ')
@@ -440,7 +440,7 @@ export async function RecordingFunction (
         }
 
         if (listNotFound) {
-          console.log('i am break because list is not exists ')
+          console.log('Breaking: list does not exist')
           break
         }
         if (i == totalCompanies.length - 1) {
@@ -538,7 +538,7 @@ export async function RecordingFunction (
               console.log('Element not found')
             }
           } catch (error) {
-            console.log('i am not available, stock price')
+            console.log('Stock price not available')
           }
 
           await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL)) // Wait before the next check
@@ -621,7 +621,7 @@ export async function TimeFunction (
       listNameSelector
     )
 
-    console.log('i am active list name', listName)
+    console.log('Active list name', listName)
 
     function getSelectors (key1, key2, key3) {
       const result = [
@@ -648,7 +648,7 @@ export async function TimeFunction (
     }
 
     console.log('this is list ', jsonData.lists)
-    console.log('i am total list length', jsonData.lists.length)
+    console.log('list length', jsonData.lists.length)
 
     let compareList = allList[l - 1]
 
@@ -694,7 +694,7 @@ export async function TimeFunction (
         '#overlap-manager-root > div:nth-child(2) > div > div.dialog-qyCw0PaN.dialog-b8SxMnzX.dialog-XuENC387.dialog-aRAWUDhF.rounded-aRAWUDhF.shadowed-aRAWUDhF > div > div.wrapper-nGEmjtaX > div.dialogContent-XuENC387 > div > div > div > div > div'
       )
 
-      console.log('i am total list count : ', favList.length)
+      console.log('Total list count : ', favList.length)
 
       // Define the title you want to match
       const targetTitle = process.argv[2]
@@ -798,7 +798,7 @@ export async function TimeFunction (
       'body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas > div > div'
     ) // Wait for the email input field to load
 
-    console.log('I am total companies stock count', totalCompanies.length - 2)
+    console.log('Total Stock count', totalCompanies.length - 2)
 
     for (let i = 1; i < totalCompanies.length; i++) {
       if (result?.length > 0) {
@@ -912,7 +912,7 @@ export async function TimeFunction (
             console.log('Element not found')
           }
         } catch (error) {
-          console.log('i am not available, stock price')
+          console.log('stock price not available')
         }
 
         await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL)) // Wait before the next check
@@ -936,7 +936,7 @@ export async function TimeFunction (
         )
 
         console.log(
-          'I am current time of loop ',
+          'current time of loop ',
           currenTime,
           time,
           convertTimeFrame(timeFrameArray[time])
@@ -1073,7 +1073,7 @@ export async function KeyboardFunction (
       '#overlap-manager-root > div:nth-child(2) > div > div.dialog-qyCw0PaN.dialog-b8SxMnzX.dialog-XuENC387.dialog-aRAWUDhF.rounded-aRAWUDhF.shadowed-aRAWUDhF > div > div.wrapper-nGEmjtaX > div.dialogContent-XuENC387 > div > div > div > div > div'
     )
 
-    console.log('i am total list count : ', favList.length)
+    console.log('List count : ', favList.length)
 
     // Define the title you want to match
     const targetTitle = process.argv[2]
@@ -1178,7 +1178,7 @@ export async function KeyboardFunction (
     'body > div.js-rootresizer__contents.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas > div > div'
   ) // Wait for the email input field to load
 
-  console.log('I am total companies stocks count', totalCompanies.length - 2)
+  console.log('stocks count', totalCompanies.length - 2)
 
   for (let i = 1; i < totalCompanies.length; i++) {
     if (result?.length > 0) {
@@ -1501,7 +1501,7 @@ export async function ListDelete (page) {
     '#overlap-manager-root > div:nth-child(2) > div > div.dialog-qyCw0PaN.dialog-b8SxMnzX.dialog-XuENC387.dialog-aRAWUDhF.rounded-aRAWUDhF.shadowed-aRAWUDhF > div > div.wrapper-nGEmjtaX > div.dialogContent-XuENC387 > div > div > div > div > div'
   )
 
-  console.log('i am total list count : ', favList.length)
+  console.log('Total list count : ', favList.length)
 
   // Define the title you want to match
   const targetTitle = process.argv[3]
