@@ -209,51 +209,7 @@ export function playVideo (filePath) {
   })
 }
 
-// Function to get the log directory path based on the current date
-const getLogDirectoryPath = () => {
-  // Define main log directory
-  const mainLogDirectory = path.join(__dirname, 'logs')
 
-  // Create main log directory if it doesn't exist
-  if (!fs.existsSync(mainLogDirectory)) {
-    fs.mkdirSync(mainLogDirectory)
-  }
-
-  // Get current Indian date for folder name
-  const dateDirectory = getIndianDateForDirectory()
-  const logDirectory = path.join(mainLogDirectory, dateDirectory)
-
-  // Create date-based subdirectory if it doesn't exist
-  if (!fs.existsSync(logDirectory)) {
-    fs.mkdirSync(logDirectory)
-  }
-
-  return logDirectory
-}
-
-const getIndianDateForDirectory = () => {
-  const indianTimeZone = 'Asia/Kolkata'
-  const options = {
-    timeZone: indianTimeZone,
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  }
-
-  // Format the date with hyphens between date, month, and year
-  const formattedDate = new Intl.DateTimeFormat('en-GB', options)
-    .formatToParts(new Date())
-    .reduce((acc, part) => {
-      if (part.type === 'day' || part.type === 'month') {
-        return acc + part.value + '-'
-      } else if (part.type === 'year') {
-        return acc + part.value
-      }
-      return acc
-    }, '')
-
-  return formattedDate.trim()
-}
 
 const getIndianDateTimeStringForFile = () => {
   const indianTimeZone = 'Asia/Kolkata'
@@ -286,29 +242,70 @@ const getIndianDateTimeStringForFile = () => {
   return formattedDate.trim()
 }
 
-// Function to initialize logging with two arguments for the file name
-export const initializeLogging = (arg1, arg2) => {
-  const logDirectory = getLogDirectoryPath()
+const getIndianTimeForFileName = () => {
+  const now = new Date();
 
-  // Generate the log file name using the provided arguments and the current date-time
-  const dateTime = getIndianDateTimeStringForFile()
-  const logFileName = `${arg1}-${arg2}-${dateTime}.log`
-  const logFilePath = path.join(logDirectory, logFileName)
-  const logStream = fs.createWriteStream(logFilePath, { flags: 'a' })
+  // Indian Standard Time offset (UTC+5:30)
+  const indianOffset = 5.5 * 60 * 60 * 1000;
+  const indianTime = new Date(now.getTime() + indianOffset);
+
+  const day = String(indianTime.getDate()).padStart(2, '0');
+  const month = String(indianTime.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+  const year = String(indianTime.getFullYear()).slice(2); // Last two digits of the year
+  const hours = String(indianTime.getHours()).padStart(2, '0');
+  const minutes = String(indianTime.getMinutes()).padStart(2, '0');
+
+  return `${day}${month}${year}${hours}${minutes}`; // ddmmyyhhmm format
+};
+
+const getLogDirectoryPath = () => {
+  // Define main log directory
+  const mainLogDirectory = path.join(__dirname, 'logs');
+
+  // Create main log directory if it doesn't exist
+  if (!fs.existsSync(mainLogDirectory)) {
+    fs.mkdirSync(mainLogDirectory);
+  }
+
+  // Format the current date as YYYY-MM-DD in IST
+  const currentDate = getIndianDate();
+  const dateSpecificLogDirectory = path.join(mainLogDirectory, currentDate);
+
+  // Create date-specific log directory if it doesn't exist
+  if (!fs.existsSync(dateSpecificLogDirectory)) {
+    fs.mkdirSync(dateSpecificLogDirectory);
+  }
+
+  return dateSpecificLogDirectory;
+};
+
+// Function to initialize logging with custom file name using IST
+export const initializeLogging = (arg1, arg2) => {
+  const logDirectory = getLogDirectoryPath();
+
+  // Get the current timestamp in IST for file name
+  const formattedTime = getIndianTimeForFileName();
+
+  // Create file name using args and IST timestamp
+  const logFileName = `${arg1}-${arg2}-${formattedTime}.log`;
+  const logFilePath = path.join(logDirectory, logFileName);
+
+  const logStream = fs.createWriteStream(logFilePath, { flags: 'a' });
 
   // Redirect console methods to write to the log file
   console.log = (...args) => {
-    const message = args.join(' ')
-    logStream.write(`${getIndianDateTimeStringForFile()} LOG: ${message}\n`)
-  }
+    const message = args.join(' ');
+    logStream.write(`${getIndianDateTimeStringForFile()} LOG: ${message}\n`);
+  };
 
   console.error = (...args) => {
-    const message = args.join(' ')
-    logStream.write(`${getIndianDateTimeStringForFile()} ERROR: ${message}\n`)
-  }
+    const message = args.join(' ');
+    logStream.write(`${getIndianDateTimeStringForFile()} ERROR: ${message}\n`);
+  };
 
-  return logStream
-}
+  return logStream;
+};
+
 export async function clickAdjBtn (page) {
   await delay(1000)
   try {
