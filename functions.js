@@ -191,11 +191,7 @@ export function playVideo (filePath) {
     const absoluteFilePath = join(__dirname, filePath)
 
     // Command to open Media Player with the specified video file
-    const command = `
-    
-    
-    
-    "${mediaPlayerPath}" "${absoluteFilePath}"`
+    const command = `"${mediaPlayerPath}" "${absoluteFilePath}"`
 
     exec(command, (error, stdout, stderr) => {
       if (error) {
@@ -213,7 +209,7 @@ export function playVideo (filePath) {
   })
 }
 
-// Function to get the log directory path
+// Function to get the log directory path based on the current date
 const getLogDirectoryPath = () => {
   // Define main log directory
   const mainLogDirectory = path.join(__dirname, 'logs')
@@ -223,7 +219,40 @@ const getLogDirectoryPath = () => {
     fs.mkdirSync(mainLogDirectory)
   }
 
-  return mainLogDirectory
+  // Get current Indian date for folder name
+  const dateDirectory = getIndianDateForDirectory()
+  const logDirectory = path.join(mainLogDirectory, dateDirectory)
+
+  // Create date-based subdirectory if it doesn't exist
+  if (!fs.existsSync(logDirectory)) {
+    fs.mkdirSync(logDirectory)
+  }
+
+  return logDirectory
+}
+
+const getIndianDateForDirectory = () => {
+  const indianTimeZone = 'Asia/Kolkata'
+  const options = {
+    timeZone: indianTimeZone,
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  }
+
+  // Format the date with hyphens between date, month, and year
+  const formattedDate = new Intl.DateTimeFormat('en-GB', options)
+    .formatToParts(new Date())
+    .reduce((acc, part) => {
+      if (part.type === 'day' || part.type === 'month') {
+        return acc + part.value + '-'
+      } else if (part.type === 'year') {
+        return acc + part.value
+      }
+      return acc
+    }, '')
+
+  return formattedDate.trim()
 }
 
 const getIndianDateTimeStringForFile = () => {
@@ -238,14 +267,14 @@ const getIndianDateTimeStringForFile = () => {
     second: '2-digit'
   }
 
-  // Format the date with the 'T' separator between date and time
+  // Format the date-time with 'T' separator between date and time
   const formattedDate = new Intl.DateTimeFormat('en-GB', options)
     .formatToParts(new Date())
     .reduce((acc, part) => {
       if (part.type === 'day' || part.type === 'month') {
         return acc + part.value + '-'
       } else if (part.type === 'year') {
-        return acc + part.value + 'T' // Insert 'T' after the year
+        return acc + part.value + 'T'
       } else if (part.type === 'hour' || part.type === 'minute') {
         return acc + part.value + ':'
       } else if (part.type === 'second') {
@@ -280,7 +309,6 @@ export const initializeLogging = (arg1, arg2) => {
 
   return logStream
 }
-
 export async function clickAdjBtn (page) {
   await delay(1000)
   try {

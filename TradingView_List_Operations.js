@@ -21,12 +21,12 @@ const BROWSER_PATH =
   //   '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser'
   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' // Change this path to your desired browser's path
 
-// initializeLogging(
-//   'ListOperationsScript',
-//   process.argv[2].includes('--')
-//     ? process.argv[2].replace(/--/g, '')
-//     : 'ListOperation'
-// )
+initializeLogging(
+  'ListOperationsScript',
+  process.argv[2].includes('--')
+    ? process.argv[2].replace(/--/g, '')
+    : 'ListOperation'
+)
 let browser
 let listNotFound = false
 const POLL_INTERVAL = 2000 // Interval in milliseconds between checks

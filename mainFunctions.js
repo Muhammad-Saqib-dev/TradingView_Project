@@ -255,28 +255,49 @@ export async function RecordingFunction (
           page
             .waitForSelector(
               '#overlap-manager-root > div:nth-child(2) > div > div.dialog-qyCw0PaN.dialog-b8SxMnzX.dialog-XuENC387.dialog-aRAWUDhF.rounded-aRAWUDhF.shadowed-aRAWUDhF > div > div.wrapper-nGEmjtaX > div.dialogContent-XuENC387 > div > div > div > div > div',
-              {
-                visible: true,
-                timeout: 60000
-              }
+              { visible: true, timeout: 60000 }
             )
-            .then(() => 'List is visible'),
+            .then(() => 'List is visible')
+            .catch(error => {
+              console.log('Error waiting for list:', error)
+              return null
+            }),
           page
             .waitForSelector(
-              '#overlap-manager-root > div:nth-child(2) > span > div.watchlistMenu-mQBvegEO.menuWrap-Kq3ruQo8 > div > div > div:nth-child(11)',
-              {
-                visible: true,
-                timeout: 60000
-              }
+              '#overlap-manager-root > div:nth-child(2) > span > div.watchlistMenu-mQBvegEO.menuWrap-Kq3ruQo8 > div > div > div:nth-child(8)',
+              { visible: true, timeout: 60000 }
             )
             .then(() => 'open list btn is visible')
+            .catch(error => {
+              console.log('Error waiting for open list btn (11):', error)
+              return null
+            })
         ])
+
+        console.log('available element: ', firstAvailableElement)
 
         if (firstAvailableElement == 'open list btn is visible') {
           await delay(1000)
-          await page.click(
-            '#overlap-manager-root > div:nth-child(2) > span > div.watchlistMenu-mQBvegEO.menuWrap-Kq3ruQo8 > div > div > div:nth-child(11)'
-          )
+          const divs = await page.$$(
+            'div.watchlistMenu-mQBvegEO > div > div > div'
+          ) // Select all div elements
+
+          for (const div of divs) {
+            // Get the span inside the current div
+            const spanText = await div
+              .$eval('span.labelRow-jFqVJoPk > span', el => el.textContent)
+              .catch(() => null) // Handle cases where span might not exist
+
+            if (spanText) {
+              console.log('Span text: ', spanText)
+            }
+
+            if (spanText && spanText.includes('Open list')) {
+              console.log('Clicking on div with span text: Open list...')
+              await div.click() // Click the div if the span's text matches
+              break // Exit the loop after the first match (optional)
+            }
+          }
 
           await delay(3000)
         } else {
@@ -662,28 +683,49 @@ export async function TimeFunction (
         page
           .waitForSelector(
             '#overlap-manager-root > div:nth-child(2) > div > div.dialog-qyCw0PaN.dialog-b8SxMnzX.dialog-XuENC387.dialog-aRAWUDhF.rounded-aRAWUDhF.shadowed-aRAWUDhF > div > div.wrapper-nGEmjtaX > div.dialogContent-XuENC387 > div > div > div > div > div',
-            {
-              visible: true,
-              timeout: 60000
-            }
+            { visible: true, timeout: 60000 }
           )
-          .then(() => 'List is visible'),
+          .then(() => 'List is visible')
+          .catch(error => {
+            console.log('Error waiting for list:', error)
+            return null
+          }),
         page
           .waitForSelector(
-            '#overlap-manager-root > div:nth-child(2) > span > div.watchlistMenu-mQBvegEO.menuWrap-Kq3ruQo8 > div > div > div:nth-child(11)',
-            {
-              visible: true,
-              timeout: 60000
-            }
+            '#overlap-manager-root > div:nth-child(2) > span > div.watchlistMenu-mQBvegEO.menuWrap-Kq3ruQo8 > div > div > div:nth-child(8)',
+            { visible: true, timeout: 60000 }
           )
           .then(() => 'open list btn is visible')
+          .catch(error => {
+            console.log('Error waiting for open list btn (11):', error)
+            return null
+          })
       ])
+
+      console.log('available element: ', firstAvailableElement)
 
       if (firstAvailableElement == 'open list btn is visible') {
         await delay(1000)
-        await page.click(
-          '#overlap-manager-root > div:nth-child(2) > span > div.watchlistMenu-mQBvegEO.menuWrap-Kq3ruQo8 > div > div > div:nth-child(11)'
-        )
+        const divs = await page.$$(
+          'div.watchlistMenu-mQBvegEO > div > div > div'
+        ) // Select all div elements
+
+        for (const div of divs) {
+          // Get the span inside the current div
+          const spanText = await div
+            .$eval('span.labelRow-jFqVJoPk > span', el => el.textContent)
+            .catch(() => null) // Handle cases where span might not exist
+
+          if (spanText) {
+            console.log('Span text: ', spanText)
+          }
+
+          if (spanText && spanText.includes('Open list')) {
+            console.log('Clicking on div with span text: Open list...')
+            await div.click() // Click the div if the span's text matches
+            break // Exit the loop after the first match (optional)
+          }
+        }
 
         await delay(3000)
       } else {
@@ -1041,28 +1083,47 @@ export async function KeyboardFunction (
       page
         .waitForSelector(
           '#overlap-manager-root > div:nth-child(2) > div > div.dialog-qyCw0PaN.dialog-b8SxMnzX.dialog-XuENC387.dialog-aRAWUDhF.rounded-aRAWUDhF.shadowed-aRAWUDhF > div > div.wrapper-nGEmjtaX > div.dialogContent-XuENC387 > div > div > div > div > div',
-          {
-            visible: true,
-            timeout: 60000
-          }
+          { visible: true, timeout: 60000 }
         )
-        .then(() => 'List is visible'),
+        .then(() => 'List is visible')
+        .catch(error => {
+          console.log('Error waiting for list:', error)
+          return null
+        }),
       page
         .waitForSelector(
-          '#overlap-manager-root > div:nth-child(2) > span > div.watchlistMenu-mQBvegEO.menuWrap-Kq3ruQo8 > div > div > div:nth-child(11)',
-          {
-            visible: true,
-            timeout: 60000
-          }
+          '#overlap-manager-root > div:nth-child(2) > span > div.watchlistMenu-mQBvegEO.menuWrap-Kq3ruQo8 > div > div > div:nth-child(8)',
+          { visible: true, timeout: 60000 }
         )
         .then(() => 'open list btn is visible')
+        .catch(error => {
+          console.log('Error waiting for open list btn (11):', error)
+          return null
+        })
     ])
+
+    console.log('available element: ', firstAvailableElement)
 
     if (firstAvailableElement == 'open list btn is visible') {
       await delay(1000)
-      await page.click(
-        '#overlap-manager-root > div:nth-child(2) > span > div.watchlistMenu-mQBvegEO.menuWrap-Kq3ruQo8 > div > div > div:nth-child(11)'
-      )
+      const divs = await page.$$('div.watchlistMenu-mQBvegEO > div > div > div') // Select all div elements
+
+      for (const div of divs) {
+        // Get the span inside the current div
+        const spanText = await div
+          .$eval('span.labelRow-jFqVJoPk > span', el => el.textContent)
+          .catch(() => null) // Handle cases where span might not exist
+
+        if (spanText) {
+          console.log('Span text: ', spanText)
+        }
+
+        if (spanText && spanText.includes('Open list')) {
+          console.log('Clicking on div with span text: Open list...')
+          await div.click() // Click the div if the span's text matches
+          break // Exit the loop after the first match (optional)
+        }
+      }
 
       await delay(3000)
     } else {
