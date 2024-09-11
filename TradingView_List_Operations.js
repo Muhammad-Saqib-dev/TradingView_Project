@@ -21,6 +21,20 @@ const BROWSER_PATH =
   //   '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser'
   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' // Change this path to your desired browser's path
 
+// Help command implementation
+if (process.argv.includes('--help')) {
+  console.log(`
+
+Commands:
+  --input <stockListFilePath> <listNameToShowInTradingView>   Add items to the list with the provided parameters.
+  --delete   <listname>       Delete items from the list.
+
+Examples:
+  node TradingView_List_Operations.js --input StockListFilePath ListNameInTradingView
+  node TradingView_List_Operations.js --delete listName
+`)
+  process.exit(0) // Exit after displaying help
+}
 initializeLogging(
   'ListOperationsScript',
   process.argv[2].includes('--')
