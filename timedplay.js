@@ -21,7 +21,7 @@ const BROWSER_PATH =
   //   '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser'
   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' // Change this path to your desired browser's path
 
-initializeLogging('TimeScript', jsonData.lists[0])
+initializeLogging('TimeDPlay', jsonData.lists[0])
 
 let browser
 let listNotFound = false

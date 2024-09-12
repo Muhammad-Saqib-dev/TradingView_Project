@@ -377,13 +377,17 @@ export async function RecordingFunction (
           console.log('given list not found')
           listNotFound = true
           // If no matching title was found after checking all items
-          await page.evaluate(
-            title => {
-              alert(`No list found with the given name "${title}"`)
-            },
-            targetTitle ? targetTitle : defaultList
+          // await page.evaluate(
+          //   title => {
+          //     alert(`No list found with the given name "${title}"`)
+          //   },
+          //   targetTitle ? targetTitle : defaultList
+          // )
+          console.log(
+            `No list found with the given name "${
+              targetTitle ? targetTitle : defaultList
+            }"`
           )
-          console.log('No matching title found.')
         }
       }
       timeFrameArray = getSelectors(
@@ -451,12 +455,16 @@ export async function RecordingFunction (
         if (result?.length > 0) {
           console.log('Breaking : the timeFrame doesnt exist')
           // If no matching title was found after checking all items
-          await page.evaluate(timeFrame => {
-            const formattedResult = timeFrame.join(', ')
-            alert(
-              `Wrong timefrmae is mentioned in the config file "${formattedResult}"`
-            )
-          }, result)
+          // await page.evaluate(timeFrame => {
+          //   const formattedResult = timeFrame.join(', ')
+          //   alert(
+          //     `Wrong timefrmae is mentioned in the config file "${formattedResult}"`
+          //   )
+          // }, result)
+          const formattedResult = result.join(', ')
+          console.log(
+            `Wrong timefrmae is mentioned in the config file "${formattedResult}"`
+          )
           break
         }
 
@@ -802,13 +810,17 @@ export async function TimeFunction (
       if (!titleFound) {
         listNotFound = true
         // If no matching title was found after checking all items
-        await page.evaluate(
-          title => {
-            alert(`No list found with the given name "${title}"`)
-          },
-          targetTitle ? targetTitle : defaultList
+        // await page.evaluate(
+        //   title => {
+        //     alert(`No list found with the given name "${title}"`)
+        //   },
+        //   targetTitle ? targetTitle : defaultList
+        // )
+        console.log(
+          `No list found with the given name "${
+            targetTitle ? targetTitle : defaultList
+          }"`
         )
-        console.log('No matching title found.')
       }
     }
     timeFrameArray = getSelectors(
@@ -845,12 +857,16 @@ export async function TimeFunction (
     for (let i = 1; i < totalCompanies.length; i++) {
       if (result?.length > 0) {
         // If no matching title was found after checking all items
-        await page.evaluate(timeFrame => {
-          const formattedResult = timeFrame.join(', ')
-          alert(
-            `Wrong timefrmae is mentioned in the config file "${formattedResult}"`
-          )
-        }, result)
+        // await page.evaluate(timeFrame => {
+        //   const formattedResult = timeFrame.join(', ')
+        //   alert(
+        //     `Wrong timefrmae is mentioned in the config file "${formattedResult}"`
+        //   )
+        // }, result)
+        const formattedResult = result.join(', ')
+        console.log(
+          `Wrong timefrmae is mentioned in the config file "${formattedResult}"`
+        )
         break
       }
 
@@ -1200,13 +1216,17 @@ export async function KeyboardFunction (
     if (!titleFound) {
       listNotFound = true
       // If no matching title was found after checking all items
-      await page.evaluate(
-        title => {
-          alert(`No list found with the given name "${title}"`)
-        },
-        targetTitle ? targetTitle : defaultList
+      // await page.evaluate(
+      //   title => {
+      //     alert(`No list found with the given name "${title}"`)
+      //   },
+      //   targetTitle ? targetTitle : defaultList
+      // )
+      console.log(
+        `No list found with the given name "${
+          targetTitle ? targetTitle : defaultList
+        }"`
       )
-      console.log('No matching title found.')
     }
   }
   timeFrameArray = getSelectors(
@@ -1244,12 +1264,16 @@ export async function KeyboardFunction (
   for (let i = 1; i < totalCompanies.length; i++) {
     if (result?.length > 0) {
       // If no matching title was found after checking all items
-      await page.evaluate(timeFrame => {
-        const formattedResult = timeFrame.join(', ')
-        alert(
-          `Wrong timefrmae is mentioned in the config file "${formattedResult}"`
-        )
-      }, result)
+      // await page.evaluate(timeFrame => {
+      //   const formattedResult = timeFrame.join(', ')
+      //   alert(
+      //     `Wrong timefrmae is mentioned in the config file "${formattedResult}"`
+      //   )
+      // }, result)
+      const formattedResult = result.join(', ')
+      console.log(
+        `Wrong timefrmae is mentioned in the config file "${formattedResult}"`
+      )
       break
     }
     if (listNotFound) {
@@ -1610,9 +1634,9 @@ export async function ListDelete (page) {
 
   if (!titleFound) {
     // If no matching title was found after checking all items
-    await page.evaluate(title => {
-      alert(`No list found with the given name "${title}"`)
-    }, targetTitle)
-    console.log('No matching title found.')
+    // await page.evaluate(title => {
+    //   alert(`No list found with the given name "${title}"`)
+    // }, targetTitle)
+    console.log(`No list found with the given name "${targetTitle}"`)
   }
 }

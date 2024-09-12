@@ -16,7 +16,7 @@ import { KeyboardFunction, login } from './mainFunctions.js'
 // Use the data in your script
 const jsonData = readJSONFile('./config.json')
 
-initializeLogging('KeyboardScript', jsonData.lists[0])
+initializeLogging('KB_Play', jsonData.lists[0])
 
 async function waitForSpaceBar (page) {
   return await page.evaluate(() => {

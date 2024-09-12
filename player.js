@@ -9,7 +9,7 @@ import { login, RecordingFunction } from './mainFunctions.js'
 // Use the data in your script
 const jsonData = readJSONFile('./config.json')
 
-initializeLogging('RecordingScript', jsonData.lists[0])
+initializeLogging('Player', jsonData.lists[0])
 puppeteer.use(StealthPlugin())
 
 const URL = jsonData.URL

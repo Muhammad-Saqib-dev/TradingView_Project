@@ -36,7 +36,7 @@ Examples:
   process.exit(0) // Exit after displaying help
 }
 initializeLogging(
-  'ListOperationsScript',
+  'Manage',
   process.argv[2].includes('--')
     ? process.argv[2].replace(/--/g, '')
     : 'ListOperation'

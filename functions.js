@@ -209,8 +209,6 @@ export function playVideo (filePath) {
   })
 }
 
-
-
 const getIndianDateTimeStringForFile = () => {
   const indianTimeZone = 'Asia/Kolkata'
   const options = {
@@ -243,68 +241,70 @@ const getIndianDateTimeStringForFile = () => {
 }
 
 const getIndianTimeForFileName = () => {
-  const now = new Date();
+  const now = new Date()
 
-  // Indian Standard Time offset (UTC+5:30)
-  const indianOffset = 5.5 * 60 * 60 * 1000;
-  const indianTime = new Date(now.getTime() + indianOffset);
+  // Get the current time in IST (Indian Standard Time)
+  const indianTime = now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' })
 
-  const day = String(indianTime.getDate()).padStart(2, '0');
-  const month = String(indianTime.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
-  const year = String(indianTime.getFullYear()).slice(2); // Last two digits of the year
-  const hours = String(indianTime.getHours()).padStart(2, '0');
-  const minutes = String(indianTime.getMinutes()).padStart(2, '0');
+  // Create a new Date object from the IST time string
+  const istDate = new Date(indianTime)
 
-  return `${day}${month}${year}${hours}${minutes}`; // ddmmyyhhmm format
-};
+  const day = String(istDate.getDate()).padStart(2, '0')
+  const month = String(istDate.getMonth() + 1).padStart(2, '0') // Months are 0-indexed
+  const year = String(istDate.getFullYear()).slice(2) // Last two digits of the year
+  const hours = String(istDate.getHours()).padStart(2, '0')
+  const minutes = String(istDate.getMinutes()).padStart(2, '0')
+
+  return `${day}${month}${year}${hours}${minutes}` // ddmmyyhhmm format
+}
 
 const getLogDirectoryPath = () => {
   // Define main log directory
-  const mainLogDirectory = path.join(__dirname, 'logs');
+  const mainLogDirectory = path.join(__dirname, 'logs')
 
   // Create main log directory if it doesn't exist
   if (!fs.existsSync(mainLogDirectory)) {
-    fs.mkdirSync(mainLogDirectory);
+    fs.mkdirSync(mainLogDirectory)
   }
 
   // Format the current date as YYYY-MM-DD in IST
-  const currentDate = getIndianDate();
-  const dateSpecificLogDirectory = path.join(mainLogDirectory, currentDate);
+  const currentDate = getIndianDate()
+  const dateSpecificLogDirectory = path.join(mainLogDirectory, currentDate)
 
   // Create date-specific log directory if it doesn't exist
   if (!fs.existsSync(dateSpecificLogDirectory)) {
-    fs.mkdirSync(dateSpecificLogDirectory);
+    fs.mkdirSync(dateSpecificLogDirectory)
   }
 
-  return dateSpecificLogDirectory;
-};
+  return dateSpecificLogDirectory
+}
 
 // Function to initialize logging with custom file name using IST
 export const initializeLogging = (arg1, arg2) => {
-  const logDirectory = getLogDirectoryPath();
+  const logDirectory = getLogDirectoryPath()
 
   // Get the current timestamp in IST for file name
-  const formattedTime = getIndianTimeForFileName();
+  const formattedTime = getIndianTimeForFileName()
 
   // Create file name using args and IST timestamp
-  const logFileName = `${arg1}-${arg2}-${formattedTime}.log`;
-  const logFilePath = path.join(logDirectory, logFileName);
+  const logFileName = `${arg1}-${arg2}-${formattedTime}.log`
+  const logFilePath = path.join(logDirectory, logFileName)
 
-  const logStream = fs.createWriteStream(logFilePath, { flags: 'a' });
+  const logStream = fs.createWriteStream(logFilePath, { flags: 'a' })
 
   // Redirect console methods to write to the log file
   console.log = (...args) => {
-    const message = args.join(' ');
-    logStream.write(`${getIndianDateTimeStringForFile()} LOG: ${message}\n`);
-  };
+    const message = args.join(' ')
+    logStream.write(`${getIndianDateTimeStringForFile()} LOG: ${message}\n`)
+  }
 
   console.error = (...args) => {
-    const message = args.join(' ');
-    logStream.write(`${getIndianDateTimeStringForFile()} ERROR: ${message}\n`);
-  };
+    const message = args.join(' ')
+    logStream.write(`${getIndianDateTimeStringForFile()} ERROR: ${message}\n`)
+  }
 
-  return logStream;
-};
+  return logStream
+}
 
 export async function clickAdjBtn (page) {
   await delay(1000)
@@ -362,10 +362,61 @@ const clearStockListFolder = folderPath => {
 }
 
 // Function to split the file into smaller files with 20 lines each and save them in the "StockList" folder
+// export const splitFileIntoChunks = (inputFilePath, linesPerFile, baseName) => {
+//   return new Promise((resolve, reject) => {
+//     try {
+//       // Define the output folder as "StockList"
+//       const outputFolder = './StockList'
+
+//       // Check if the "StockList" folder exists, if not, create it
+//       if (!fs.existsSync(outputFolder)) {
+//         fs.mkdirSync(outputFolder)
+//         console.log(`Created folder: ${outputFolder}`)
+//       } else {
+//         // Clear the folder if it already exists
+//         clearStockListFolder(outputFolder)
+//       }
+
+//       // Read the file content
+//       const fileContent = fs.readFileSync(inputFilePath, 'utf-8')
+
+//       // Split the content into an array of lines
+//       const lines = fileContent.split('\n')
+
+//       // Initialize an array to store the file paths of the newly created files
+//       const createdFilePaths = []
+
+//       // Split the lines into chunks of the desired size (20 lines)
+//       for (let i = 0; i < lines.length; i += linesPerFile) {
+//         // Create a subset of the lines
+//         const chunk = lines.slice(i, i + linesPerFile).join('\n')
+
+//         // Create a new file name for each chunk
+//         const outputFilePath = path.join(
+//           outputFolder,
+//           `${baseName}-${Math.floor(i / linesPerFile) + 1}.txt`
+//         )
+
+//         // Write the chunk to a new file inside the "StockList" folder
+//         fs.writeFileSync(outputFilePath, chunk, 'utf-8')
+//         console.log(`Created file: ${outputFilePath}`)
+
+//         // Add the file path to the array
+//         createdFilePaths.push(outputFilePath)
+//       }
+
+//       // Resolve the promise with the array of created file paths
+//       resolve(createdFilePaths)
+//     } catch (error) {
+//       // Reject the promise if an error occurs
+//       reject(error)
+//     }
+//   })
+// }
+
 export const splitFileIntoChunks = (inputFilePath, linesPerFile, baseName) => {
   return new Promise((resolve, reject) => {
     try {
-      // Define the output folder as "StockList"
       const outputFolder = './StockList'
 
       // Check if the "StockList" folder exists, if not, create it
@@ -386,29 +437,36 @@ export const splitFileIntoChunks = (inputFilePath, linesPerFile, baseName) => {
       // Initialize an array to store the file paths of the newly created files
       const createdFilePaths = []
 
-      // Split the lines into chunks of the desired size (20 lines)
-      for (let i = 0; i < lines.length; i += linesPerFile) {
-        // Create a subset of the lines
-        const chunk = lines.slice(i, i + linesPerFile).join('\n')
-
-        // Create a new file name for each chunk
-        const outputFilePath = path.join(
-          outputFolder,
-          `${baseName}-${Math.floor(i / linesPerFile) + 1}.txt`
-        )
-
-        // Write the chunk to a new file inside the "StockList" folder
-        fs.writeFileSync(outputFilePath, chunk, 'utf-8')
+      // If total lines are 20 or fewer, create a single file without suffix
+      if (lines.length <= 20) {
+        const outputFilePath = path.join(outputFolder, `${baseName}.txt`)
+        fs.writeFileSync(outputFilePath, lines.join('\n'), 'utf-8')
         console.log(`Created file: ${outputFilePath}`)
-
-        // Add the file path to the array
         createdFilePaths.push(outputFilePath)
+      } else {
+        // Split the lines into chunks of the desired size (20 lines)
+        for (let i = 0; i < lines.length; i += linesPerFile) {
+          // Create a subset of the lines
+          const chunk = lines.slice(i, i + linesPerFile).join('\n')
+
+          // Determine file name with suffix only if the total lines are greater than 20
+          const outputFilePath = path.join(
+            outputFolder,
+            `${baseName}-${Math.floor(i / linesPerFile) + 1}.txt`
+          )
+
+          // Write the chunk to a new file inside the "StockList" folder
+          fs.writeFileSync(outputFilePath, chunk, 'utf-8')
+          console.log(`Created file: ${outputFilePath}`)
+
+          // Add the file path to the array
+          createdFilePaths.push(outputFilePath)
+        }
       }
 
       // Resolve the promise with the array of created file paths
       resolve(createdFilePaths)
     } catch (error) {
-      // Reject the promise if an error occurs
       reject(error)
     }
   })

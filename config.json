@@ -1,17 +1,16 @@
 {
-  "URL":"https://www.tradingview.com/chart/L1lbnc7U/?symbol=BSE%3AAIML",
+  "URL": "https://www.tradingview.com/chart/L1lbnc7U/?symbol=BSE%3AAIML",
   "accountEmail": "email@gmail.com",
   "accountPassword": "password786",
-  "loginWait":90000,
+  "loginWait": 90000,
   "waitingTime": 3000,
- "lists":["svpr"],
-  "timeFrame1":"3M",
-  "timeFrame2":"6M",
-  "timeFrame3":"12M",
-  "recordingTimeFrame":"1W",
-  "recordingIntervalDelay":1000,
-  "ScreenshotsOutputFolder":"./Screenshots",
-  "RecordingsOutputFolder":"./Recordings",
-  "mediaPlayerPath":"C:/Program Files (x86)/Windows Media Player/wmplayer.exe"
+  "lists": ["comp-3"],
+  "timeFrame1": "3M",
+  "timeFrame2": "6M",
+  "timeFrame3": "12M",
+  "recordingTimeFrame": "1W",
+  "recordingIntervalDelay": 1000,
+  "ScreenshotsOutputFolder": "./Screenshots",
+  "RecordingsOutputFolder": "./Recordings",
+  "mediaPlayerPath": "C:/Program Files (x86)/Windows Media Player/wmplayer.exe"
 }
-
