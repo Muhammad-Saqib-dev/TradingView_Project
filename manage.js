@@ -60,7 +60,8 @@ const runTest = async () => {
       args: [
         '--disable-features=IsolateOrigins,site-per-process',
         '--disable-site-isolation-trials',
-        '--disable-popup-blocking'
+        '--disable-popup-blocking',
+        '--disable-notifications'
       ]
     })
 
@@ -129,12 +130,8 @@ const runTest = async () => {
       }
     }
     if (firstAvailableElement == 'Not LoggedIn') {
-      await login(
-        browser,
-        page,
-        cookieFilePath,
-        firstAvailableElement,
-        jsonData
+      return console.log(
+        'please generate the new cookie, old cookie is expired'
       )
 
       //   await TimeFunction(page, jsonData, listNotFound, POLL_INTERVAL, TIMEOUT)

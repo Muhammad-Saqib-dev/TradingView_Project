@@ -71,7 +71,8 @@ const runTest = async () => {
       args: [
         '--disable-features=IsolateOrigins,site-per-process',
         '--disable-site-isolation-trials',
-        '--disable-popup-blocking'
+        '--disable-popup-blocking',
+        '--disable-notifications'
       ],
       protocolTimeout: 0 // 0 means no timeout
     })
@@ -189,23 +190,8 @@ const runTest = async () => {
     }
 
     if (firstAvailableElement === 'Not LoggedIn') {
-      await login(
-        browser,
-        page,
-        cookieFilePath,
-        firstAvailableElement,
-        jsonData
-      )
-      await KeyboardFunction(
-        page,
-        jsonData,
-        listNotFound,
-        POLL_INTERVAL,
-        TIMEOUT,
-        nextCompany,
-        previousCompany,
-        nextCompanyItteration,
-        waitForSpaceBar
+      return console.log(
+        'please generate the new cookie, old cookie is expired'
       )
 
       // Save the cookies after login

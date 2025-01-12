@@ -231,6 +231,8 @@ export async function RecordingFunction (
       })
     }
 
+    let listNotAvb
+
     for (let l = 1; l <= allList.length; l++) {
       const listNameSelector = await page.waitForSelector(
         'span.titleRow-mQBvegEO'
@@ -510,61 +512,91 @@ export async function RecordingFunction (
 
         const startTime = Date.now()
 
+        // while (Date.now() - startTime < TIMEOUT) {
+        //   try {
+        //     const firstAvailableElement = await Promise.race([
+        //       page
+        //         .waitForSelector(stockPriceSelector, {
+        //           visible: true,
+        //           timeout: 60000
+        //         })
+        //         .then(() => 'Stock Price Available'),
+        //       page
+        //         .waitForSelector(notAvailableSelector, {
+        //           visible: true,
+        //           timeout: 60000
+        //         })
+        //         .then(() => 'invalid symbol')
+        //     ])
+
+        //     console.log('i am the selector', firstAvailableElement)
+
+        //     if (firstAvailableElement) {
+        //       let textContent
+        //       if (firstAvailableElement == 'Stock Price Available') {
+        //         const element = await page.$(stockPriceSelector)
+        //         textContent = await page.evaluate(
+        //           el => el.innerText.trim(),
+        //           element
+        //         )
+        //         console.log('i am text', textContent)
+        //       } else if (firstAvailableElement == 'invalid symbol') {
+        //         const notAvailable = await page.$(notAvailableSelector)
+        //         textContent = await page.evaluate(
+        //           el => el.textContent.trim(),
+        //           notAvailable
+        //         )
+        //       }
+
+        //       // Check if textContent is a number
+        //       if (
+        //         !isNaN(parseFloat(textContent)) ||
+        //         textContent == 'Invalid symbol'
+        //       ) {
+        //         const stock = await page.$(
+        //           'body > div.js-rootresizer__contents.black-border-bigger-radius.layout-with-border-radius > div.layout__area--center > div.chart-container.single-visible.top-full-width-chart.active > div.chart-container-border > div > div.chart-markup-table > div:nth-child(1) > div.chart-markup-table.pane > div > div.legend-l31H9iuA.noWrap-l31H9iuA.wrappable-l31H9iuA > div.legendMainSourceWrapper-l31H9iuA > div.item-l31H9iuA.series-l31H9iuA > div.noWrapWrapper-l31H9iuA > div.titlesWrapper-l31H9iuA > div.titleWrapper-l31H9iuA.mainTitle-l31H9iuA.withDot-l31H9iuA.apply-common-tooltip.withAction-l31H9iuA > button'
+        //         )
+        //         const currentStock = await page.evaluate(
+        //           el => el.textContent.trim(),
+        //           stock
+        //         )
+
+        //         console.log(
+        //           `Current Stock Name:${currentStock} and  Price: ${textContent}`
+        //         )
+        //         break // Exit loop if a number is found
+        //       } else {
+        //         console.log(`Not a number: ${textContent}`)
+        //       }
+        //     } else {
+        //       console.log('Element not found')
+        //     }
+        //   } catch (error) {
+        //     console.log(error)
+        //     console.log('Stock price not available')
+        //   }
+
+        //   await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL)) // Wait before the next check
+        // }
         while (Date.now() - startTime < TIMEOUT) {
           try {
-            const firstAvailableElement = await Promise.race([
-              page
-                .waitForSelector(stockPriceSelector, {
-                  visible: true,
-                  timeout: 60000
-                })
-                .then(() => 'Stock Price Available'),
-              page
-                .waitForSelector(notAvailableSelector, {
-                  visible: true,
-                  timeout: 60000
-                })
-                .then(() => 'invalid symbol')
-            ])
+            // Wait for the selector to appear on the page
+            const element = await page.waitForSelector(
+              'body > div.js-rootresizer__contents.black-border-bigger-radius.layout-with-border-radius > div.layout__area--center > div.chart-container.single-visible.top-full-width-chart.active > div.chart-container-border > div > div.chart-markup-table > div:nth-child(1) > div.chart-markup-table.pane > div > div.legend-l31H9iuA.noWrap-l31H9iuA.wrappable-l31H9iuA > div.legendMainSourceWrapper-l31H9iuA > div.item-l31H9iuA.series-l31H9iuA',
+              { timeout: POLL_INTERVAL } // Wait for a short interval before timing out
+            )
 
-            if (firstAvailableElement) {
-              let textContent
-              if (firstAvailableElement == 'Stock Price Available') {
-                const element = await page.$(stockPriceSelector)
-                textContent = await page.evaluate(
-                  el => el.textContent.trim(),
-                  element
-                )
-              } else if (firstAvailableElement == 'invalid symbol') {
-                const notAvailable = await page.$(notAvailableSelector)
-                textContent = await page.evaluate(
-                  el => el.textContent.trim(),
-                  notAvailable
-                )
-              }
+            // Get the value of the "data-status" attribute
+            const status = await element.evaluate(el =>
+              el.getAttribute('data-status')
+            )
 
-              // Check if textContent is a number
-              if (
-                !isNaN(parseFloat(textContent)) ||
-                textContent == 'Invalid symbol'
-              ) {
-                const stock = await page.$(
-                  'div.titleWrapper-l31H9iuA.mainTitle-l31H9iuA.apply-overflow-tooltip.withDot-l31H9iuA.apply-common-tooltip.withAction-l31H9iuA > button'
-                )
-                const currentStock = await page.evaluate(
-                  el => el.textContent.trim(),
-                  stock
-                )
+            console.log('Current status:', status)
 
-                console.log(
-                  `Current Stock Name:${currentStock} and  Price: ${textContent}`
-                )
-                break // Exit loop if a number is found
-              } else {
-                console.log(`Not a number: ${textContent}`)
-              }
-            } else {
-              console.log('Element not found')
+            // Break the loop if the status is "undefined"
+            if (status === 'undefined') {
+              console.log('Status is undefined. Exiting loop.')
+              break
             }
           } catch (error) {
             console.log('Stock price not available')
@@ -615,7 +647,7 @@ export async function RecordingFunction (
       }
     }
 
-    return [recorder, filePath]
+    return [recorder, filePath, listNotFound]
   } catch (error) {
     console.log(error)
     await cleanup(filePath)

@@ -1,6 +1,12 @@
 import puppeteer from 'puppeteer-extra'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import fs from 'fs'
+import { readJSONFile } from './functions.js'
+
+// Use the data in your script
+const jsonData = readJSONFile('./config.json')
+
+const url = jsonData.URL
 
 puppeteer.use(StealthPlugin())
 
@@ -17,7 +23,8 @@ const runTest = async () => {
         '--disable-features=IsolateOrigins,site-per-process',
         '--disable-site-isolation-trials',
         '--disable-popup-blocking',
-        '--lang=en' // Enforcing English language
+        '--lang=en', // Enforcing English language,
+        '--disable-notifications'
       ]
     })
 
@@ -37,13 +44,10 @@ const runTest = async () => {
 
     // Navigate to the specified TradingView chart
     console.log('Navigating to TradingView chart...')
-    await page.goto(
-      'https://www.tradingview.com/chart/k4N4Qr4X/?symbol=COINBASE%3ABTCUSD',
-      {
-        timeout: 180000,
-        waitUntil: ['load', 'domcontentloaded']
-      }
-    )
+    await page.goto(url, {
+      timeout: 180000,
+      waitUntil: ['load', 'domcontentloaded']
+    })
 
     const userLoggedInSelector =
       'div.text-yrIMi47q.text_large-yrIMi47q > div > p:nth-child(1) > button'

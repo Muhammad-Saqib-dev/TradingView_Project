@@ -40,7 +40,8 @@ const runTest = async () => {
       args: [
         '--disable-features=IsolateOrigins,site-per-process',
         '--disable-site-isolation-trials',
-        '--disable-popup-blocking'
+        '--disable-popup-blocking',
+        '--disable-notifications'
       ]
     })
 
@@ -109,23 +110,9 @@ const runTest = async () => {
       }
     }
     if (firstAvailableElement == 'Not LoggedIn') {
-      await login(
-        browser,
-        page,
-        cookieFilePath,
-        firstAvailableElement,
-        jsonData
+      return console.log(
+        'please generate the new cookie, old cookie is expired'
       )
-
-      recorder = await RecordingFunction(
-        page,
-        jsonData,
-        recorder,
-        listNotFound,
-        POLL_INTERVAL,
-        TIMEOUT,
-        browser
-      )[0]
     } else {
       console.log('i am already logged in')
       recorder = await RecordingFunction(
@@ -144,10 +131,11 @@ const runTest = async () => {
   } catch (error) {
     console.log(error)
   } finally {
-    await recorder[0].stop()
+    console.log('i am recorder', recorder)
+    if (!recorder[2]) await recorder[0].stop()
     // // Stop the recording
     await browser.close()
-    await playVideo(recorder[1])
+    if (!recorder[2]) await playVideo(recorder[1])
     process.exit()
   }
 }

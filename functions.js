@@ -191,7 +191,9 @@ export function playVideo (filePath) {
     const absoluteFilePath = join(__dirname, filePath)
 
     // Command to open Media Player with the specified video file
-    const command = `"${mediaPlayerPath}" "${absoluteFilePath}"`
+    // const command = `"${mediaPlayerPath}" "${absoluteFilePath}"`
+    //for macbook
+    const command = `open -a "${mediaPlayerPath}" "${absoluteFilePath}"`
 
     exec(command, (error, stdout, stderr) => {
       if (error) {

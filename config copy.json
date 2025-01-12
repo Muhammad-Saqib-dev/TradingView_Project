@@ -1,7 +1,7 @@
 {
-  "URL": "https://www.tradingview.com/chart/k4N4Qr4X/?symbol=COINBASE%3ABTCUSD",
+  "URL": "https://www.tradingview.com/chart/L1lbnc7U/?symbol=BSE%3AAIML",
   "waitingTime": 3000,
-  "lists": ["testing-3"],
+  "lists": ["comp-3"],
   "timeFrame1": "3M",
   "timeFrame2": "6M",
   "timeFrame3": "12M",
