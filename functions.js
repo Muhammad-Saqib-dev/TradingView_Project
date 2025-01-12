@@ -361,59 +361,6 @@ const clearStockListFolder = folderPath => {
   }
 }
 
-// Function to split the file into smaller files with 20 lines each and save them in the "StockList" folder
-// export const splitFileIntoChunks = (inputFilePath, linesPerFile, baseName) => {
-//   return new Promise((resolve, reject) => {
-//     try {
-//       // Define the output folder as "StockList"
-//       const outputFolder = './StockList'
-
-//       // Check if the "StockList" folder exists, if not, create it
-//       if (!fs.existsSync(outputFolder)) {
-//         fs.mkdirSync(outputFolder)
-//         console.log(`Created folder: ${outputFolder}`)
-//       } else {
-//         // Clear the folder if it already exists
-//         clearStockListFolder(outputFolder)
-//       }
-
-//       // Read the file content
-//       const fileContent = fs.readFileSync(inputFilePath, 'utf-8')
-
-//       // Split the content into an array of lines
-//       const lines = fileContent.split('\n')
-
-//       // Initialize an array to store the file paths of the newly created files
-//       const createdFilePaths = []
-
-//       // Split the lines into chunks of the desired size (20 lines)
-//       for (let i = 0; i < lines.length; i += linesPerFile) {
-//         // Create a subset of the lines
-//         const chunk = lines.slice(i, i + linesPerFile).join('\n')
-
-//         // Create a new file name for each chunk
-//         const outputFilePath = path.join(
-//           outputFolder,
-//           `${baseName}-${Math.floor(i / linesPerFile) + 1}.txt`
-//         )
-
-//         // Write the chunk to a new file inside the "StockList" folder
-//         fs.writeFileSync(outputFilePath, chunk, 'utf-8')
-//         console.log(`Created file: ${outputFilePath}`)
-
-//         // Add the file path to the array
-//         createdFilePaths.push(outputFilePath)
-//       }
-
-//       // Resolve the promise with the array of created file paths
-//       resolve(createdFilePaths)
-//     } catch (error) {
-//       // Reject the promise if an error occurs
-//       reject(error)
-//     }
-//   })
-// }
-
 export const splitFileIntoChunks = (inputFilePath, linesPerFile, baseName) => {
   return new Promise((resolve, reject) => {
     try {
