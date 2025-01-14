@@ -191,9 +191,9 @@ export function playVideo (filePath) {
     const absoluteFilePath = join(__dirname, filePath)
 
     // Command to open Media Player with the specified video file
-    // const command = `"${mediaPlayerPath}" "${absoluteFilePath}"`
+    const command = `"${mediaPlayerPath}" "${absoluteFilePath}"`
     //for macbook
-    const command = `open -a "${mediaPlayerPath}" "${absoluteFilePath}"`
+    // const command = `open -a "${mediaPlayerPath}" "${absoluteFilePath}"`
 
     exec(command, (error, stdout, stderr) => {
       if (error) {
@@ -390,7 +390,7 @@ export const splitFileIntoChunks = (inputFilePath, linesPerFile, baseName) => {
       if (lines.length <= 20) {
         const outputFilePath = path.join(outputFolder, `${baseName}.txt`)
         fs.writeFileSync(outputFilePath, lines.join('\n'), 'utf-8')
-        console.log(`Created file: ${outputFilePath}`)
+        // console.log(`Created file: ${outputFilePath}`)
         createdFilePaths.push(outputFilePath)
       } else {
         // Split the lines into chunks of the desired size (20 lines)
@@ -406,7 +406,7 @@ export const splitFileIntoChunks = (inputFilePath, linesPerFile, baseName) => {
 
           // Write the chunk to a new file inside the "StockList" folder
           fs.writeFileSync(outputFilePath, chunk, 'utf-8')
-          console.log(`Created file: ${outputFilePath}`)
+          // console.log(`Created file: ${outputFilePath}`)
 
           // Add the file path to the array
           createdFilePaths.push(outputFilePath)
@@ -419,4 +419,84 @@ export const splitFileIntoChunks = (inputFilePath, linesPerFile, baseName) => {
       reject(error)
     }
   })
+}
+
+export async function saveStockListToFile (stockNames, fileName) {
+  const { promises } = fs
+  try {
+    const folderPath = path.resolve(jsonData.StockListsFolder) // Path to the StockList folder
+    const filePath = path.join(folderPath, `${fileName}.txt`) // Full path for the file
+
+    // Check if the folder exists; if not, create it
+    try {
+      await promises.access(folderPath) // Check folder accessibility
+    } catch {
+      await promises.mkdir(folderPath, { recursive: true }) // Create the folder
+      console.log(`Created folder: ${folderPath}`)
+    }
+
+    // Write the stock names to the file
+    const fileContent = stockNames.join('\n') // Join array elements with a newline
+    await promises.writeFile(filePath, fileContent, 'utf8')
+    console.log(`File created successfully at: ${filePath}`)
+  } catch (error) {
+    console.error('Error saving stock list to file:', error.message)
+  }
+}
+
+export async function getAllStockNames (page) {
+  try {
+    const stockNames = new Set() // To store unique stock names
+    const listContainerSelector =
+      'body > div.js-rootresizer__contents.black-border-bigger-radius.layout-with-border-radius > div.layout__area--right > div > div.widgetbar-pages > div.widgetbar-pagescontent > div.widgetbar-page.active > div.widget-X9EuSe_t.widgetbar-widget.widgetbar-widget-watchlist > div.widgetbar-widgetbody > div > div > div > div.content-g71rrBCn > div > div > div.listContainer-MgF6KBas'
+
+    // Wait for the list container to load
+    await page.waitForSelector(listContainerSelector, { visible: true })
+
+    let lastScrollTop = 0
+    let scrollAttempts = 0 // Prevent infinite loops in case of failure
+    const maxScrollAttempts = 3 // Adjust this based on the list length
+
+    while (scrollAttempts < maxScrollAttempts) {
+      // Get all currently visible stock names
+      const totalDivs = await page.$$eval(
+        `${listContainerSelector} > div > div`,
+        divs =>
+          divs.map((div, index) => ({
+            index,
+            name: div
+              .querySelector(
+                'div > div > div > span > div > div > span:first-child'
+              )
+              ?.textContent.trim()
+          }))
+      )
+
+      // Add stock names to the Set
+      totalDivs.forEach(({ name }) => {
+        if (name) stockNames.add(name)
+      })
+
+      // Scroll the container
+      const scrollTop = await page.evaluate(selector => {
+        const container = document.querySelector(selector)
+        container.scrollTop += 300 // Scroll by 300px
+        return container.scrollTop // Return the updated scrollTop
+      }, listContainerSelector)
+
+      // Break the loop if no further scrolling is possible
+      if (scrollTop === lastScrollTop) {
+        scrollAttempts++
+        await delay(600) // Allow time for the scroll event to complete
+      } else {
+        lastScrollTop = scrollTop
+        scrollAttempts = 0 // Reset attempts since scrolling progressed
+      }
+    }
+
+    return Array.from(stockNames) // Return the unique stock names
+  } catch (error) {
+    console.error('Error while scrolling and getting stock names:', error)
+    return []
+  }
 }

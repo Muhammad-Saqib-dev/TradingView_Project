@@ -9,9 +9,23 @@ command:"node TradingView_Keyboard.js optional(list name)"
 command:"node TradingView_Time.js optional(list name)"
 
 
+Manage.js file command
+
+Commands:
+  --help    Show help information
+  --get     Retrieve the lists .
+  --input <stockListFilePath> <listNameToShowInTradingView>   Add items to the list with the provided parameters.
+  --delete <listname>    Delete items from the list.
+
+Examples:
+  node Manage.js --get
+  node Manage.js --input StockListFilePath ListNameInTradingView
+  node Manage.js --delete listName
+
+
+
+
 Config File Setup:
-
-
 TimeFrame can be defined in this format
 
   "1s"  = 1 second 

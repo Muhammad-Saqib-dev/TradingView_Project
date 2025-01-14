@@ -1,7 +1,7 @@
 import puppeteer from 'puppeteer-extra'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import fs from 'fs'
-import { ListDelete, ListInput, login } from './mainFunctions.js'
+import { getList, ListDelete, ListInput, login } from './mainFunctions.js'
 import {
   delay,
   initializeLogging,
@@ -14,39 +14,79 @@ const jsonData = readJSONFile('./config.json')
 
 puppeteer.use(StealthPlugin())
 
-// const URL = "https://www.tradingview.com/chart/k4N4Qr4X/?symbol=NSE%3ARELIANCE";
 const URL = jsonData.URL
 
 const BROWSER_PATH =
   //   '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser'
   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' // Change this path to your desired browser's path
 
-// Help command implementation
-if (process.argv.includes('--help')) {
+if (process.argv.length <= 2) {
   console.log(`
+No arguments provided.
 
 Commands:
+  --help    Show help information
+  --get     Retrieve the lists .
   --input <stockListFilePath> <listNameToShowInTradingView>   Add items to the list with the provided parameters.
-  --delete   <listname>       Delete items from the list.
+  --delete <listname>    Delete items from the list.
 
 Examples:
-  node TradingView_List_Operations.js --input StockListFilePath ListNameInTradingView
-  node TradingView_List_Operations.js --delete listName
+  node Manage.js --get
+  node Manage.js --input StockListFilePath ListNameInTradingView
+  node Manage.js --delete listName
 `)
-  process.exit(0) // Exit after displaying help
+  process.exit(0)
 }
-initializeLogging(
-  'Manage',
-  process.argv[2].includes('--')
-    ? process.argv[2].replace(/--/g, '')
-    : 'ListOperation'
-)
+
+if (process.argv.includes('--help')) {
+  console.log(`
+Commands:
+  --get     Retrieve the list of items.
+  --input <stockListFilePath> <listNameToShowInTradingView>   Add items to the list with the provided parameters.
+  --delete <listname>    Delete items from the list.
+
+Examples:
+  node Manage.js --get
+  node Manage.js --input StockListFilePath ListNameInTradingView
+  node Manage.js --delete listName
+`)
+  process.exit(0)
+} else if (process.argv.includes('--get')) {
+  console.log('Retrieving the list ....')
+} else if (process.argv.includes('--input')) {
+  const inputIndex = process.argv.indexOf('--input')
+  const stockListFilePath = process.argv[inputIndex + 1]
+  const listNameToShowInTradingView = process.argv[inputIndex + 2]
+
+  if (!stockListFilePath || !listNameToShowInTradingView) {
+    console.error(
+      'Error: --input requires <stockListFilePath> and <listNameToShowInTradingView> arguments.'
+    )
+    process.exit(1)
+  }
+
+  console.log(
+    `Adding items from ${stockListFilePath} to the list "${listNameToShowInTradingView}"...`
+  )
+  // Logic for adding items can be added here
+} else if (process.argv.includes('--delete')) {
+  const deleteIndex = process.argv.indexOf('--delete')
+  const listName = process.argv[deleteIndex + 1]
+
+  if (!listName) {
+    console.error('Error: --delete requires <listname> argument.')
+    process.exit(1)
+  }
+
+  console.log(`Deleting the list "${listName}"...`)
+  // Logic for deleting items can be added here
+} else {
+  console.error('Error: Invalid command. Use --help to see available commands.')
+  process.exit(1)
+}
+
 let browser
-let listNotFound = false
-const POLL_INTERVAL = 2000 // Interval in milliseconds between checks
-const TIMEOUT = 60000 // Total timeout duration in milliseconds
 const runTest = async () => {
-  console.log('TradingView Time Script is running...')
   const cookieFilePath = './cookies.json'
   try {
     // Launch a headful Chrome browser
@@ -54,9 +94,8 @@ const runTest = async () => {
     // want our page should take full width of browser
     browser = await puppeteer.launch({
       //   ignoreHTTPSErrors: true,
-      headless: false,
+      // headless: false,
       defaultViewport: null,
-      // executablePath: BROWSER_PATH,
       args: [
         '--disable-features=IsolateOrigins,site-per-process',
         '--disable-site-isolation-trials',
@@ -133,28 +172,19 @@ const runTest = async () => {
       return console.log(
         'please generate the new cookie, old cookie is expired'
       )
-
-      //   await TimeFunction(page, jsonData, listNotFound, POLL_INTERVAL, TIMEOUT)
     } else {
-      console.log('Already Logged In')
+      // console.log('Already Logged In')
 
       if (process.argv[2] == '--input') {
         await ListInput(page, process.argv[3], process.argv[4])
       } else if (process.argv[2] == '--delete') {
         await ListDelete(page)
-      } else {
-        console.log(
-          "Invalid command. Please provide either '--input' or '--delete' as command line argument."
-        )
-        await page.evaluate(() => {
-          alert(
-            "Invalid command. Please provide either '--input' or '--delete' as command line argument."
-          )
-        })
+      } else if (process.argv[2] == '--get') {
+        await getList(page)
       }
     }
 
-    console.log('Time Script Finished')
+    console.log('Script Finished')
     // Close the browser
   } catch (error) {
     console.log(error)

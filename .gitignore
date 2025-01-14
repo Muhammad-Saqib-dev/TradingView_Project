@@ -8,3 +8,4 @@
 /logs
 /StockList
 *.txt
+/configcopy.json

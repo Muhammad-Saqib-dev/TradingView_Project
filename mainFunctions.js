@@ -5,10 +5,12 @@ import {
   checkKeysAvailability,
   clickAdjBtn,
   convertTimeFrame,
+  getAllStockNames,
   getCompareList,
   getSelectors,
   playVideo,
   saveCookies,
+  saveStockListToFile,
   splitFileIntoChunks,
   timeFramesSelectors
 } from './functions.js'
@@ -637,6 +639,8 @@ export async function RecordingFunction (
             '#header-toolbar-intervals > button > div > div'
           ) // Wait for the email input field to load
           await page.evaluate(element => element.click(), timeFrameBtn)
+
+          console.log('i am time frmae', timeFrameArray)
 
           const timeFrame = await page.waitForSelector(timeFrameArray[time])
           // const elementHTML = await page.evaluate(el => el.innerHTML, timeFrame)
@@ -1548,6 +1552,7 @@ export async function ListInput (page, listFilePath, listName) {
       await delay(2000)
     }
   }
+  console.log(`list added successfully `)
 }
 
 ////////////////////////////////////////////
@@ -1561,7 +1566,7 @@ export async function ListDelete (page) {
 
   await page.evaluate(listBtn => listBtn.click(), favListBtn)
 
-  console.log('Deleting list...')
+  // console.log('Deleting list...')
 
   const firstAvailableElement = await Promise.race([
     page
@@ -1586,7 +1591,7 @@ export async function ListDelete (page) {
       })
   ])
 
-  console.log('available element: ', firstAvailableElement)
+  // console.log('available element: ', firstAvailableElement)
 
   if (firstAvailableElement == 'open list btn is visible') {
     await delay(1000)
@@ -1599,11 +1604,11 @@ export async function ListDelete (page) {
         .catch(() => null) // Handle cases where span might not exist
 
       if (spanText) {
-        console.log('Span text: ', spanText)
+        // console.log('Span text: ', spanText)
       }
 
       if (spanText && spanText.includes('Open list')) {
-        console.log('Clicking on div with span text: Open list...')
+        // console.log('Clicking on div with span text: Open list...')
         await div.click() // Click the div if the span's text matches
         break // Exit the loop after the first match (optional)
       }
@@ -1618,7 +1623,7 @@ export async function ListDelete (page) {
     '#overlap-manager-root > div:nth-child(2) > div > div.dialog-qyCw0PaN.dialog-b8SxMnzX.dialog-XuENC387.dialog-aRAWUDhF.rounded-aRAWUDhF.shadowed-aRAWUDhF > div > div.wrapper-nGEmjtaX > div.dialogContent-XuENC387 > div > div > div > div > div'
   )
 
-  console.log('Total list count : ', favList.length)
+  // console.log('Total list count : ', favList.length)
 
   // Define the title you want to match
   const targetTitle = process.argv[3]
@@ -1632,10 +1637,10 @@ export async function ListDelete (page) {
       return titleElement ? titleElement.textContent.trim() : 'Title not found'
     })
 
-    console.log('list name: ', title)
+    // console.log('list name: ', title)
 
     if (title === targetTitle) {
-      console.log(`Found matching title: ${title}, clicking it.`)
+      // console.log(`Found matching title: ${title}, clicking it.`)
       // Click on the title element
       await fav.evaluate(el => {
         const titleElement = el.querySelector(
@@ -1658,6 +1663,8 @@ export async function ListDelete (page) {
         }
       })
 
+      console.log(`list "${targetTitle}" is deleted successfully `)
+
       titleFound = true // Mark that the title was found
       break // Stop the loop once the title is found and clicked
     }
@@ -1670,5 +1677,178 @@ export async function ListDelete (page) {
     //   alert(`No list found with the given name "${title}"`)
     // }, targetTitle)
     console.log(`No list found with the given name "${targetTitle}"`)
+  }
+}
+
+////////////////////////////////////////////
+////////////////////////////////////////////
+//// Get Delete
+////////////////////////////////////////////
+////////////////////////////////////////////
+
+export async function getList (page) {
+  const favListBtn = await page.$('span.titleRow-mQBvegEO') // Wait for the email input field to load
+
+  await page.evaluate(listBtn => listBtn.click(), favListBtn)
+
+  // console.log('Getting list...')
+
+  const firstAvailableElement = await Promise.race([
+    page
+      .waitForSelector(
+        '#overlap-manager-root > div:nth-child(2) > div > div.dialog-qyCw0PaN.dialog-b8SxMnzX.dialog-XuENC387.dialog-aRAWUDhF.rounded-aRAWUDhF.shadowed-aRAWUDhF > div > div.wrapper-nGEmjtaX > div.dialogContent-XuENC387 > div > div > div > div > div',
+        { visible: true, timeout: 60000 }
+      )
+      .then(() => 'List is visible')
+      .catch(error => {
+        console.log('Error waiting for list:', error)
+        return null
+      }),
+    page
+      .waitForSelector(
+        '#overlap-manager-root > div:nth-child(2) > span > div.watchlistMenu-mQBvegEO.menuWrap-Kq3ruQo8 > div > div > div:nth-child(8)',
+        { visible: true, timeout: 60000 }
+      )
+      .then(() => 'open list btn is visible')
+      .catch(error => {
+        console.log('Error waiting for open list btn (11):', error)
+        return null
+      })
+  ])
+
+  // console.log('available element: ', firstAvailableElement)
+
+  if (firstAvailableElement == 'open list btn is visible') {
+    await delay(1000)
+    const divs = await page.$$('div.watchlistMenu-mQBvegEO > div > div > div') // Select all div elements
+
+    for (const div of divs) {
+      // Get the span inside the current div
+      const spanText = await div
+        .$eval('span.labelRow-jFqVJoPk > span', el => el.textContent)
+        .catch(() => null) // Handle cases where span might not exist
+
+      if (spanText) {
+        // console.log('Span text: ', spanText)
+      }
+
+      if (spanText && spanText.includes('Open list')) {
+        // console.log('Clicking on div with span text: Open list...')
+        await div.click() // Click the div if the span's text matches
+        break // Exit the loop after the first match (optional)
+      }
+    }
+
+    await delay(3000)
+  } else {
+    await delay(3000)
+  }
+
+  const favList = await page.$$(
+    '#overlap-manager-root > div:nth-child(2) > div > div.dialog-qyCw0PaN.dialog-b8SxMnzX.dialog-XuENC387.dialog-aRAWUDhF.rounded-aRAWUDhF.shadowed-aRAWUDhF > div > div.wrapper-nGEmjtaX > div.dialogContent-XuENC387 > div > div > div > div > div'
+  )
+
+  console.log('Total list: ', favList.length - 4)
+
+  const filterFavlist = favList.slice(3, favList.length - 1)
+
+  for (let i = 0; i < filterFavlist.length; i++) {
+    let favList2
+    let filterFavlist2
+    let fav
+    if (i > 0) {
+      favList2 = await page.$$(
+        '#overlap-manager-root > div:nth-child(2) > div > div.dialog-qyCw0PaN.dialog-b8SxMnzX.dialog-XuENC387.dialog-aRAWUDhF.rounded-aRAWUDhF.shadowed-aRAWUDhF > div > div.wrapper-nGEmjtaX > div.dialogContent-XuENC387 > div > div > div > div > div'
+      )
+      filterFavlist2 = favList.slice(3, favList.length - 1)
+    }
+    if (i > 0) {
+      fav = filterFavlist2[i]
+    } else {
+      fav = filterFavlist[i]
+    }
+
+    if (i > 0) {
+      const favListBtn = await page.$('span.titleRow-mQBvegEO') // Wait for the email input field to load
+
+      await page.evaluate(listBtn => listBtn.click(), favListBtn)
+
+      console.log('Getting next list...')
+
+      const firstAvailableElement = await Promise.race([
+        page
+          .waitForSelector(
+            '#overlap-manager-root > div:nth-child(2) > div > div.dialog-qyCw0PaN.dialog-b8SxMnzX.dialog-XuENC387.dialog-aRAWUDhF.rounded-aRAWUDhF.shadowed-aRAWUDhF > div > div.wrapper-nGEmjtaX > div.dialogContent-XuENC387 > div > div > div > div > div',
+            { visible: true, timeout: 60000 }
+          )
+          .then(() => 'List is visible')
+          .catch(error => {
+            console.log('Error waiting for list:', error)
+            return null
+          }),
+        page
+          .waitForSelector(
+            '#overlap-manager-root > div:nth-child(2) > span > div.watchlistMenu-mQBvegEO.menuWrap-Kq3ruQo8 > div > div > div:nth-child(8)',
+            { visible: true, timeout: 60000 }
+          )
+          .then(() => 'open list btn is visible')
+          .catch(error => {
+            console.log('Error waiting for open list btn (11):', error)
+            return null
+          })
+      ])
+
+      // console.log('available element: ', firstAvailableElement)
+
+      if (firstAvailableElement == 'open list btn is visible') {
+        await delay(1000)
+        const divs = await page.$$(
+          'div.watchlistMenu-mQBvegEO > div > div > div'
+        ) // Select all div elements
+
+        for (const div of divs) {
+          // Get the span inside the current div
+          const spanText = await div
+            .$eval('span.labelRow-jFqVJoPk > span', el => el.textContent)
+            .catch(() => null) // Handle cases where span might not exist
+
+          if (spanText) {
+            // console.log('Span text: ', spanText)
+          }
+
+          if (spanText && spanText.includes('Open list')) {
+            // console.log('Clicking on div with span text: Open list...')
+            await div.click() // Click the div if the span's text matches
+            break // Exit the loop after the first match (optional)
+          }
+        }
+
+        await delay(3000)
+      } else {
+        await delay(3000)
+      }
+    }
+
+    const title = await fav.evaluate(el => {
+      // Find the child element with a class name that starts with "title"
+      const titleElement = el.querySelector('[class^="title"]')
+      return titleElement ? titleElement.textContent.trim() : 'Title not found'
+    })
+
+    console.log('Current list name:', title)
+
+    await page.click(`[data-overflow-tooltip-html="${title}"]`)
+    await delay(2000)
+
+    const stockNames = await getAllStockNames(page)
+    console.log('Stocks in', title, stockNames)
+    console.log('Total stocks in', title, stockNames.length)
+    await saveStockListToFile(stockNames, title)
+
+    if (i !== filterFavlist.length - 1) {
+      console.log('\n\n\n')
+    }
+
+    await delay(3000)
   }
 }
